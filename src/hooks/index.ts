@@ -16,6 +16,7 @@ export { usePersistentForm } from './usePersistentForm';
 // Export auth utility hooks
 export { useIsAuthenticated } from './useIsAuthenticated';
 export { useCurrentUserData } from './useCurrentUserData';
+export { useAuthRehydration } from './useAuthRehydration';
 
 // Export role-related hooks
 export * from './useRole';
@@ -31,4 +32,5 @@ export { useToggle } from './useToggle';
 export { useClickOutside } from './useClickOutside';
 export { useKeyboardShortcut } from './useKeyboardShortcut';
 export { useWindowSize } from './useWindowSize';
+export { useDeviceDetection } from './useDeviceDetection';
 export { usePerformanceMonitor, useApiPerformance } from './usePerformance';

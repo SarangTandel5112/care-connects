@@ -44,7 +44,7 @@ function validateEnv(): EnvConfig {
   const nodeEnv = (process.env.NODE_ENV || 'development') as EnvConfig['nodeEnv'];
 
   return {
-    apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api',
+    apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.careconnects.life/api',
     appName: process.env.NEXT_PUBLIC_APP_NAME || 'Care Connects',
     jwtSecret: process.env.JWT_SECRET || 'development-jwt-secret',
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'development-refresh-secret',

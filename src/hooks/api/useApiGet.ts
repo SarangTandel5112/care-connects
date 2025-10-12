@@ -5,11 +5,11 @@ import { ApiResponse } from '@/types';
 import toast from 'react-hot-toast';
 
 /**
- * Hook for GET requests to Next.js API routes with authentication
+ * Hook for GET requests to backend API with authentication
  */
 export function useApiGet<T>(
   queryKey: string[],
-  apiRoute: string, // e.g., '/api/users' or 'api/users'
+  apiRoute: string, // e.g., 'users' or 'auth/me'
   options?: {
     enabled?: boolean;
     staleTime?: number;
@@ -17,14 +17,17 @@ export function useApiGet<T>(
     retry?: boolean | number;
     requireAuth?: boolean;
     params?: Record<string, string | number>; // Query parameters
+    refetchOnWindowFocus?: boolean;
+    refetchOnMount?: boolean;
+    refetchOnReconnect?: boolean;
   }
 ) {
   const getAccessToken = () => tokenStorage.getAccessToken();
   const isTokenExpired = () => tokenStorage.isTokenExpired();
   const requireAuth = options?.requireAuth !== false; // Default to true
 
-  // Ensure the route starts with /api/
-  const normalizedRoute = apiRoute.startsWith('/api/') ? apiRoute : `/api/${apiRoute}`;
+  // Use the route as-is since baseURL points to backend API
+  const normalizedRoute = apiRoute;
 
   // Build query string from params
   const queryString = options?.params
@@ -36,26 +39,31 @@ export function useApiGet<T>(
 
   const fullUrl = `${normalizedRoute}${queryString}`;
 
+  // Double-check enabled condition
+  const isEnabled =
+    options?.enabled !== false && (!requireAuth || (!!getAccessToken() && !isTokenExpired()));
+
   return useQuery({
     queryKey: [...queryKey, fullUrl],
     queryFn: async (): Promise<T> => {
+      // This should never run if enabled is false, but double-check
       if (requireAuth) {
         const token = getAccessToken();
         if (!token || isTokenExpired()) {
-          toast.error('Session expired. Please login again.');
-          throw new Error('No valid token available');
+          // Don't throw error, just return null to avoid toast notifications
+          return null as T;
         }
       }
 
       const response = await Axios.get<ApiResponse<T>>(fullUrl);
       return response.data.data;
     },
-    enabled:
-      options?.enabled !== false && (!requireAuth || (!!getAccessToken() && !isTokenExpired())),
-    staleTime: options?.staleTime || 5 * 60 * 1000, // 5 minutes default
-    gcTime: options?.gcTime || 10 * 60 * 1000, // 10 minutes default
-    retry: options?.retry !== false ? 2 : false, // Reduced retries
-    refetchOnWindowFocus: false, // Disable for better performance
-    refetchOnMount: true, // Keep this for fresh data
+    enabled: isEnabled,
+    staleTime: options?.staleTime || 5 * 60 * 1000, // 5 minutes - data is considered fresh
+    gcTime: options?.gcTime || 15 * 60 * 1000, // 15 minutes - cache kept in memory (increased from 10)
+    retry: options?.retry !== false ? 2 : false, // Retry failed requests twice
+    refetchOnWindowFocus: options?.refetchOnWindowFocus ?? false, // Don't refetch on tab focus
+    refetchOnMount: options?.refetchOnMount ?? true, // Refetch on component mount
+    refetchOnReconnect: options?.refetchOnReconnect ?? true, // Refetch when network reconnects (improved)
   });
 }

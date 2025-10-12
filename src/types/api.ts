@@ -3,6 +3,10 @@ export interface ApiError {
   status: number;
   code?: string;
   details?: Record<string, any>;
+  response?: {
+    data?: any;
+    status?: number;
+  };
 }
 
 export interface ApiResponse<T = any> {

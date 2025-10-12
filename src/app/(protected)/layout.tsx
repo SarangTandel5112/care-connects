@@ -4,17 +4,34 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
 import { useIsAuthenticated, useCurrentUser } from '@/hooks';
+import { Sidebar, Header } from '@/components/layout';
 
+/**
+ * Protected Layout
+ * Wrapper for all authenticated pages with sidebar and header navigation
+ * Following Single Responsibility Principle - handles authentication check and layout structure
+ */
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const isAuthenticated = useIsAuthenticated();
+
+  // Only fetch user data if authenticated to avoid unnecessary API calls
   const { isLoading } = useCurrentUser();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) router.push('/login');
-  }, [isAuthenticated, isLoading, router]);
+    // Only redirect if we're sure the user is not authenticated
+    // Add a small delay to prevent immediate redirects during token validation
+    const timer = setTimeout(() => {
+      if (!isAuthenticated) {
+        router.push('/login');
+      }
+    }, 100);
 
-  if (isLoading) {
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, router]);
+
+  // Show loading only if we're actually loading user data
+  if (isAuthenticated && isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -23,13 +40,26 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   }
 
   if (!isAuthenticated) {
-    return null; // Will redirect to login
+    console.log('-=------------');
+
+    return null; //TODO: Will redirect to login
   }
 
   return (
-    <div className="min-h-screen bg-secondary-50">
-      {/* TODO: Add Sidebar and Header components here */}
-      <main>{children}</main>
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col overflow-hidden ml-0 md:ml-16">
+        {/* Header */}
+        <Header />
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
+          <div className="h-full">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }

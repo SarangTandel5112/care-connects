@@ -2,9 +2,12 @@
  * Token management utilities for JWT-based authentication
  */
 
+import type { User } from '@/types/auth';
+
 const TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const TOKEN_EXPIRY_KEY = 'token_expiry';
+const USER_KEY = 'user';
 
 export const tokenStorage = {
   getAccessToken: (): string | null => {
@@ -15,6 +18,23 @@ export const tokenStorage = {
   getRefreshToken: (): string | null => {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem(REFRESH_TOKEN_KEY);
+  },
+
+  getTokens: (): { accessToken: string; refreshToken: string | null; expiresIn: number | null } | null => {
+    if (typeof window === 'undefined') return null;
+
+    const accessToken = localStorage.getItem(TOKEN_KEY);
+    if (!accessToken) return null;
+
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    const expiryTime = localStorage.getItem(TOKEN_EXPIRY_KEY);
+    const expiresIn = expiryTime ? Math.floor((parseInt(expiryTime) - Date.now()) / 1000) : null;
+
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn,
+    };
   },
 
   setTokens: (accessToken: string, refreshToken: string, expiresIn: number): void => {
@@ -33,6 +53,8 @@ export const tokenStorage = {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(TOKEN_EXPIRY_KEY);
+    // Also remove legacy 'token' key if it exists
+    localStorage.removeItem('token');
   },
 
   isTokenExpired: (): boolean => {
@@ -47,6 +69,41 @@ export const tokenStorage = {
   isTokenValid: (): boolean => {
     const token = tokenStorage.getAccessToken();
     return !!token && !tokenStorage.isTokenExpired();
+  },
+
+  // User storage methods
+  getUser: (): User | null => {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      const userStr = localStorage.getItem(USER_KEY);
+      if (!userStr) return null;
+      return JSON.parse(userStr) as User;
+    } catch (error) {
+      console.error('Error parsing user from localStorage:', error);
+      return null;
+    }
+  },
+
+  setUser: (user: User): void => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+    } catch (error) {
+      console.error('Error saving user to localStorage:', error);
+    }
+  },
+
+  clearUser: (): void => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(USER_KEY);
+  },
+
+  // Combined clear method for logout
+  clearAll: (): void => {
+    tokenStorage.clearTokens();
+    tokenStorage.clearUser();
   },
 };
 

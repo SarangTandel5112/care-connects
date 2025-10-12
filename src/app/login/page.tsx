@@ -1,88 +1,71 @@
 'use client';
 
-import { useFormHandler } from '@/hooks/useFormHandler';
-import { loginSchema, LoginFormData } from '@/modules/auth/schemas/login.schema';
-import { useLogin } from '@/modules/auth/hooks/useAuth';
-import { Button, Card, Field } from '@/components/ui';
-import { useIsAuthenticated, useCurrentUser } from '@/hooks';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatedBackground, LoginHeader, LoginForm, LoginFooter } from '@/modules/auth';
+import { tokenStorage } from '@/utils/token';
+import { pageVariants, cardVariants } from '@/utils/animations';
+import { DebugAuth } from '@/components/DebugAuth';
 
+/**
+ * Login Page Component
+ * Following SOLID principles:
+ * - Single Responsibility: Only handles login page layout
+ * - Open/Closed: Open for extension, closed for modification
+ * - Liskov Substitution: Uses proper interfaces
+ * - Interface Segregation: Uses focused interfaces
+ * - Dependency Inversion: Depends on abstractions, not concretions
+ */
 export default function LoginPage() {
-  const { mutate: login, isPending } = useLogin();
-  const isAuthenticated = useIsAuthenticated();
-  const { isLoading } = useCurrentUser();
   const router = useRouter();
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.push('/dashboard');
-    }
-  }, [isAuthenticated, isLoading, router]);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useFormHandler<LoginFormData>({
-    schema: loginSchema,
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-    onSubmit: async (data) => {
-      return new Promise((resolve, reject) => {
-        login(data, {
-          onSuccess: () => resolve(),
-          onError: (error) => reject(error),
-        });
-      });
-    },
-  });
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
+    const hasValidToken = tokenStorage.isTokenValid();
+    if (hasValidToken) router.push('/dashboard');
+  }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-secondary-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <Card>
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-secondary-900">Care Connects</h2>
-            <p className="mt-2 text-sm text-secondary-600">Sign in to your account</p>
+    <AnimatePresence mode="wait">
+      <motion.div
+        className="from-blue-50 via-slate-50 to-cyan-50 h-screen bg-gradient-to-br overflow-hidden"
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+      >
+        <AnimatedBackground />
+
+        {/* Container with responsive height behavior */}
+        <div className="relative flex h-full items-center justify-center p-4 sm:p-6 md:p-8">
+          <div className="w-full max-w-sm sm:max-w-md md:max-w-lg h-full max-h-[90vh] sm:h-auto sm:max-h-[90vh]">
+            {/* Login Card with responsive height */}
+            <motion.div
+              className="bg-white/95 border-gray-200/50 h-full sm:h-auto sm:max-h-[90vh] rounded-xl border shadow-2xl backdrop-blur-md p-4 sm:p-6 md:p-8 overflow-y-auto"
+              variants={cardVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
+            >
+              {/* All content scrollable together */}
+              <div className="space-y-6">
+                <LoginHeader />
+
+                {/* LoginForm now handles its own login logic and redirect */}
+                <LoginForm redirectTo="/dashboard" />
+
+                <LoginFooter />
+              </div>
+            </motion.div>
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <Field
-              label="Email Address"
-              type="email"
-              placeholder="Enter your email"
-              error={errors.email?.message}
-              disabled={isPending}
-              {...register('email')}
-            />
-
-            <Field
-              label="Password"
-              type="password"
-              placeholder="Enter your password"
-              error={errors.password?.message}
-              disabled={isPending}
-              {...register('password')}
-            />
-
-            <Button type="submit" isLoading={isPending} className="w-full">
-              Sign In
-            </Button>
-          </form>
-        </Card>
-      </div>
-    </div>
+        {/* Debug component to see Redux and localStorage state */}
+        <DebugAuth />
+      </motion.div>
+    </AnimatePresence>
   );
 }

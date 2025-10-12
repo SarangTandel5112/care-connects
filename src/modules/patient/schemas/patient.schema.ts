@@ -1,75 +1,67 @@
+/**
+ * Patient Schemas
+ * Based on backend DTOs with Zod validation
+ * Defines types and validation for patient operations
+ */
+
 import { z } from 'zod';
 
-// Address schema
-export const addressSchema = z.object({
-  street: z.string().min(1, 'Street is required'),
-  city: z.string().min(1, 'City is required'),
-  state: z.string().min(1, 'State is required'),
-  zipCode: z.string().min(1, 'ZIP code is required'),
-  country: z.string().min(1, 'Country is required'),
-});
+// ============================================
+// ENUMS
+// ============================================
 
-// Emergency contact schema
-export const emergencyContactSchema = z.object({
-  name: z.string().min(1, 'Emergency contact name is required'),
-  relationship: z.string().min(1, 'Relationship is required'),
-  phone: z.string().min(1, 'Emergency contact phone is required'),
-});
+export const GenderEnum = z.enum(['Male', 'Female', 'Other']);
+export const PatientGroupEnum = z.enum(['Friends', 'Family', 'Others']);
+export const MaritalStatusEnum = z.enum(['Single', 'Married']);
 
-// Insurance info schema
-export const insuranceInfoSchema = z.object({
-  provider: z.string().min(1, 'Insurance provider is required'),
-  policyNumber: z.string().min(1, 'Policy number is required'),
-  groupNumber: z.string().min(1, 'Group number is required'),
-});
+// ============================================
+// PATIENT SCHEMAS
+// ============================================
 
-// Create patient schema
 export const createPatientSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().min(1, 'Phone number is required'),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
-  gender: z.enum(['male', 'female', 'other'], {
-    errorMap: () => ({ message: 'Gender must be male, female, or other' }),
-  }),
-  address: addressSchema,
-  emergencyContact: emergencyContactSchema,
-  medicalHistory: z.array(z.string()).default([]),
-  allergies: z.array(z.string()).default([]),
-  medications: z.array(z.string()).default([]),
-  insuranceInfo: insuranceInfoSchema,
+  mobile: z
+    .string()
+    .regex(/^[0-9]{10}$/, 'Mobile number must contain exactly 10 digits')
+    .length(10, 'Mobile number must be 10 digits long'),
+  location: z.string().optional(),
+  patientGroup: PatientGroupEnum.optional(),
+  birthDate: z.date().optional(),
+  gender: GenderEnum.optional(),
+  age: z.number().int().min(0).max(150).optional(),
+  profilePic: z.string().url().optional(),
+  maritalStatus: MaritalStatusEnum.optional(),
+  numberOfChildren: z.number().int().min(0).optional(),
+  country: z.string().optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
+  region: z.string().optional(),
+  zipCode: z.string().optional(),
+  referredBy: z.string().optional(),
+  consents: z.string().optional(),
+  medicalConditions: z.array(z.string()).optional(),
 });
 
-// Update patient schema (all fields optional except id)
-export const updatePatientSchema = z.object({
-  id: z.string().min(1, 'Patient ID is required'),
-  firstName: z.string().min(1, 'First name is required').optional(),
-  lastName: z.string().min(1, 'Last name is required').optional(),
-  email: z.string().email('Invalid email address').optional(),
-  phone: z.string().min(1, 'Phone number is required').optional(),
-  dateOfBirth: z.string().min(1, 'Date of birth is required').optional(),
-  gender: z.enum(['male', 'female', 'other']).optional(),
-  address: addressSchema.partial().optional(),
-  emergencyContact: emergencyContactSchema.partial().optional(),
-  medicalHistory: z.array(z.string()).optional(),
-  allergies: z.array(z.string()).optional(),
-  medications: z.array(z.string()).optional(),
-  insuranceInfo: insuranceInfoSchema.partial().optional(),
-  status: z.enum(['active', 'inactive', 'archived']).optional(),
+export const updatePatientSchema = createPatientSchema.partial().extend({
+  id: z.string().uuid(),
 });
 
-// Search patient schema
-export const searchPatientSchema = z.object({
-  search: z.string().min(2, 'Search term must be at least 2 characters'),
-  status: z.enum(['active', 'inactive', 'archived']).optional(),
-  gender: z.enum(['male', 'female', 'other']).optional(),
+export const patientSchema = createPatientSchema.extend({
+  id: z.string().uuid(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
-// Export types
-export type CreatePatientFormData = z.infer<typeof createPatientSchema>;
-export type UpdatePatientFormData = z.infer<typeof updatePatientSchema>;
-export type SearchPatientFormData = z.infer<typeof searchPatientSchema>;
-export type AddressFormData = z.infer<typeof addressSchema>;
-export type EmergencyContactFormData = z.infer<typeof emergencyContactSchema>;
-export type InsuranceInfoFormData = z.infer<typeof insuranceInfoSchema>;
+export const patientSearchSchema = z.object({
+  search: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  mobile: z.string().optional(),
+  gender: GenderEnum.optional(),
+  birthDate: z.date().optional(),
+  maritalStatus: MaritalStatusEnum.optional(),
+  patientGroup: PatientGroupEnum.optional(),
+  page: z.number().int().min(1).default(1),
+  limit: z.number().int().min(1).max(100).default(20),
+});

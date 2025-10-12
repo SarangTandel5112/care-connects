@@ -1,12 +1,12 @@
-export interface User {
-  id: string;
+/**
+ * Authentication types for the application
+ * Following Interface Segregation Principle - separate interfaces for different concerns
+ * Updated to match actual backend response structure
+ */
+
+export interface LoginCredentials {
   email: string;
-  name: string;
-  role: 'admin' | 'doctor' | 'nurse' | 'receptionist';
-  avatar?: string;
-  permissions?: string[];
-  createdAt: string;
-  updatedAt: string;
+  password: string;
 }
 
 export interface AuthTokens {
@@ -15,37 +15,72 @@ export interface AuthTokens {
   expires_in: number;
 }
 
-export interface LoginCredentials {
+/**
+ * Clinic information nested in user object
+ */
+export interface Clinic {
+  id: string;
+  name: string;
+  location: string | null;
+  country: string | null;
+  state: string | null;
+  city: string | null;
+  region: string | null;
+  zipCode: string | null;
+  contactNumber: string | null;
+  fax: string | null;
+  email: string | null;
+  additionalInfo: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * User object from backend
+ * Matches actual API response structure
+ */
+export interface User {
+  id: string;
+  email: string;
+  fullName: string | null;
+  phoneNumber: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  clinic: Clinic;
+  // Optional fields for future use
+  role?: string;
+  avatar?: string;
+}
+
+/**
+ * Login data returned from API (nested data field)
+ * This is what useApiPost returns after unwrapping response.data.data
+ */
+export interface LoginData {
+  user: User;
+  accessToken: string;
+  refreshToken?: string;
+}
+
+/**
+ * Full backend login API response structure
+ * Actual format: { message: string, data: { user: User, accessToken: string } }
+ */
+export interface AuthResponse {
+  message: string;
+  data: LoginData;
+}
+
+export interface LoginFormData {
   email: string;
   password: string;
 }
 
-export interface AuthResponse {
-  user: User;
-  tokens: AuthTokens;
-}
-
 export interface AuthState {
-  user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
+  user: User | null;
+  tokens: AuthTokens | null;
+  loading: boolean;
   error: string | null;
 }
-
-export interface AuthContextType extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshToken: () => Promise<void>;
-  clearError: () => void;
-}
-
-// Auth reducer action types
-export type AuthAction =
-  | { type: 'AUTH_START' }
-  | { type: 'AUTH_SUCCESS'; payload: User }
-  | { type: 'AUTH_FAILURE'; payload: string }
-  | { type: 'LOGOUT' }
-  | { type: 'CLEAR_ERROR' }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'REFRESH_START' }
-  | { type: 'REFRESH_SUCCESS'; payload: User };

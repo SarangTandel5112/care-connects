@@ -79,7 +79,7 @@ const Modal: React.FC<ModalProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-md"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
@@ -87,7 +87,7 @@ const Modal: React.FC<ModalProps> = ({
     >
       <div
         ref={modalRef}
-        className={`relative bg-white rounded-lg shadow-xl ${sizeClasses[size]} w-full max-h-[90vh] overflow-y-auto`}
+        className={`relative bg-white rounded-lg shadow-xl ${sizeClasses[size]} w-full max-h-[85vh] overflow-hidden flex flex-col`}
         tabIndex={-1}
         role="document"
       >
@@ -119,7 +119,7 @@ const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Content */}
-        <div className="p-6">{children}</div>
+        <div className="p-6 flex-1 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

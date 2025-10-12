@@ -1,7 +1,15 @@
-import { useCurrentUser } from '@/modules/auth/hooks/useAuth';
+import { tokenStorage } from '@/utils/token';
+import { useAuthStore } from './useStore';
 
-// Check if user is authenticated
+/**
+ * Hook to check if user is authenticated
+ * Uses Redux store and token validation
+ * Does NOT trigger API calls
+ */
 export const useIsAuthenticated = () => {
-  const { data: user, error } = useCurrentUser();
-  return !!user && !error;
+  const { isAuthenticated } = useAuthStore();
+  const hasValidToken = tokenStorage.isTokenValid();
+
+  // User is authenticated if Redux says so AND we have a valid token
+  return isAuthenticated && hasValidToken;
 };
