@@ -8,7 +8,7 @@ interface SidebarMenuItemProps {
   item: MenuItem;
   isActive: boolean;
   isExpanded: boolean;
-  onClick: () => void;
+  onClick: (event: React.MouseEvent) => void;
 }
 
 /**

@@ -13,6 +13,7 @@ import { PatientTableHeader } from './PatientTableHeader';
 import { PatientTableBody } from './PatientTableBody';
 import { PatientTableFooter } from './PatientTableFooter';
 import type { Patient } from '@/types/patient';
+import { Gender } from '@/modules/patient/types/patient.types';
 
 interface PatientTableProps {
   /**
@@ -34,7 +35,7 @@ export const PatientTable: React.FC<PatientTableProps> = ({ className = '' }) =>
       firstName: 'John',
       lastName: 'Doe',
       mobile: '+1234567890',
-      gender: 'Male' as const,
+      gender: Gender.MALE,
       age: 35,
       location: 'New York',
       createdAt: '2024-01-15T10:30:00Z',
@@ -45,7 +46,7 @@ export const PatientTable: React.FC<PatientTableProps> = ({ className = '' }) =>
       firstName: 'Jane',
       lastName: 'Smith',
       mobile: '+1234567891',
-      gender: 'Female' as const,
+      gender: Gender.FEMALE,
       age: 28,
       location: 'Los Angeles',
       createdAt: '2024-01-16T14:20:00Z',
@@ -56,7 +57,7 @@ export const PatientTable: React.FC<PatientTableProps> = ({ className = '' }) =>
       firstName: 'Robert',
       lastName: 'Johnson',
       mobile: '+1234567892',
-      gender: 'Male' as const,
+      gender: Gender.MALE,
       age: 42,
       location: 'Chicago',
       createdAt: '2024-01-17T09:15:00Z',
@@ -67,7 +68,7 @@ export const PatientTable: React.FC<PatientTableProps> = ({ className = '' }) =>
       firstName: 'Emily',
       lastName: 'Davis',
       mobile: '+1234567893',
-      gender: 'Female' as const,
+      gender: Gender.FEMALE,
       age: 31,
       location: 'Houston',
       createdAt: '2024-01-18T11:45:00Z',
@@ -78,7 +79,7 @@ export const PatientTable: React.FC<PatientTableProps> = ({ className = '' }) =>
       firstName: 'Michael',
       lastName: 'Wilson',
       mobile: '+1234567894',
-      gender: 'Male' as const,
+      gender: Gender.MALE,
       age: 38,
       location: 'Phoenix',
       createdAt: '2024-01-19T16:30:00Z',
@@ -89,7 +90,7 @@ export const PatientTable: React.FC<PatientTableProps> = ({ className = '' }) =>
       firstName: 'Sarah',
       lastName: 'Brown',
       mobile: '+1234567895',
-      gender: 'Female' as const,
+      gender: Gender.FEMALE,
       age: 26,
       location: 'Philadelphia',
       createdAt: '2024-01-20T13:10:00Z',
@@ -100,7 +101,7 @@ export const PatientTable: React.FC<PatientTableProps> = ({ className = '' }) =>
       firstName: 'David',
       lastName: 'Taylor',
       mobile: '+1234567896',
-      gender: 'Male' as const,
+      gender: Gender.MALE,
       age: 45,
       location: 'San Antonio',
       createdAt: '2024-01-21T10:00:00Z',
@@ -111,7 +112,7 @@ export const PatientTable: React.FC<PatientTableProps> = ({ className = '' }) =>
       firstName: 'Lisa',
       lastName: 'Anderson',
       mobile: '+1234567897',
-      gender: 'Female' as const,
+      gender: Gender.FEMALE,
       age: 33,
       location: 'San Diego',
       createdAt: '2024-01-22T15:25:00Z',
@@ -152,7 +153,9 @@ export const PatientTable: React.FC<PatientTableProps> = ({ className = '' }) =>
   };
 
   return (
-    <div className={`flex h-full w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}>
+    <div
+      className={`flex h-full w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}
+    >
       {/* Toolbar: Search and Actions */}
       <div className="flex-shrink-0 border-b border-gray-200">
         <PatientTableToolbar

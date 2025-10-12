@@ -10,21 +10,13 @@
  * - Real-time form updates with debouncing
  */
 
-import React, { useMemo, useCallback, useRef, useEffect, useState, Suspense } from 'react';
+import React, { useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import { Formik, Form, FormikProps } from 'formik';
 import { Button } from '@/components/ui';
-import { Tabs, Skeleton } from 'antd';
+import { Tabs } from 'antd';
 import * as Yup from 'yup';
-import {
-  ConsultationFormValues,
-  CreateConsultation,
-  MedicineType,
-  DurationType,
-  ConditionType,
-  PaymentMethod,
-} from '../types/consultation.types';
+import { CreateConsultation, ConsultationFormValues } from '../types/consultation.types';
 import { useCreateConsultation } from '../hooks/useConsultations';
-import { PatientSelectionSection } from './PatientSelectionSection';
 import { BasicInfoSection } from './BasicInfoSection';
 import { ToothExaminationSection } from './ToothExaminationSection';
 import { ProceduresSection } from './ProceduresSection';
@@ -46,12 +38,12 @@ interface ConsultationFormProps {
 export const ConsultationForm: React.FC<ConsultationFormProps> = ({
   initialPatientId,
   initialAppointmentId,
-  readOnlyFields = {},
+  // readOnlyFields = {},
   onSubmitSuccess,
   onCancel,
 }) => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [previousValues, setPreviousValues] = useState<ConsultationFormValues | null>(null);
+  // const [previousValues, setPreviousValues] = useState<ConsultationFormValues | null>(null);
 
   // API hooks
   const createConsultation = useCreateConsultation();
@@ -126,9 +118,8 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
         // - Calculate billing subtotal
         // - Calculate GST if applicable
         // - Calculate total amount
-
         // For now, just update previous values
-        setPreviousValues(values);
+        // setPreviousValues(values);
       }, 300);
     },
     []
@@ -235,11 +226,6 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
         enableReinitialize
       >
         {(formik) => {
-          // Call handleFormChange when values change
-          useEffect(() => {
-            handleFormChange(formik.values, formik);
-          }, [formik.values]);
-
           return (
             <Form className="space-y-6">
               {/* Patient and Appointment Selection Section */}

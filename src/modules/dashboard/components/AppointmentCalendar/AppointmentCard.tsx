@@ -113,7 +113,9 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
                 className="w-8 h-8 p-0 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg border border-gray-300 hover:border-emerald-300 transition-all duration-200 hover:scale-105 flex items-center justify-center"
                 ariaLabel="Check in patient"
                 icon={<LoginOutlined style={{ fontSize: '16px' }} />}
-              />
+              >
+                {/* Empty children - icon is handled by icon prop */}
+              </Button>
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Check In
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
@@ -127,7 +129,9 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
                 className="w-8 h-8 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg border border-gray-300 hover:border-blue-300 transition-all duration-200 hover:scale-105 flex items-center justify-center"
                 ariaLabel="Start consultation"
                 icon={<UserAddOutlined style={{ fontSize: '16px' }} />}
-              />
+              >
+                {/* Empty children - icon is handled by icon prop */}
+              </Button>
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Consultation
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
@@ -141,7 +145,9 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
                 className="w-8 h-8 p-0 text-gray-600 hover:bg-gray-50 hover:text-gray-700 rounded-lg border border-gray-300 hover:border-gray-400 transition-all duration-200 hover:scale-105 flex items-center justify-center"
                 ariaLabel="Edit appointment"
                 icon={<EditOutlined style={{ fontSize: '16px' }} />}
-              />
+              >
+                {/* Empty children - icon is handled by icon prop */}
+              </Button>
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Edit
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>

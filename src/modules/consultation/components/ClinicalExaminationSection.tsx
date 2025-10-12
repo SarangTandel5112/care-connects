@@ -47,7 +47,7 @@ export const ClinicalExaminationSection: React.FC<ClinicalExaminationSectionProp
           )}
         </Field>
         <p className="text-xs text-gray-500 mt-1">
-          Document the main reasons for the patient's visit and primary symptoms
+          Document the main reasons for the patient&apos;s visit and primary symptoms
         </p>
       </div>
 
@@ -132,8 +132,8 @@ export const ClinicalExaminationSection: React.FC<ClinicalExaminationSectionProp
       {/* Info Box */}
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-900">
-          <strong>💡 Tip:</strong> Be thorough in documenting clinical findings. This information
-          is crucial for treatment planning and future reference.
+          <strong>💡 Tip:</strong> Be thorough in documenting clinical findings. This information is
+          crucial for treatment planning and future reference.
         </p>
       </div>
     </div>

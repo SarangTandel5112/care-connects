@@ -20,7 +20,7 @@ describe('tokenStorage', () => {
     it('should return null in server environment', () => {
       // Simulate server environment
       const originalWindow = global.window;
-      // @ts-ignore
+      // @ts-expect-error - Intentionally deleting window for test
       delete global.window;
 
       expect(tokenStorage.getAccessToken()).toBeNull();
@@ -41,7 +41,7 @@ describe('tokenStorage', () => {
 
     it('should return null in server environment', () => {
       const originalWindow = global.window;
-      // @ts-ignore
+      // @ts-expect-error - Intentionally deleting window for test
       delete global.window;
 
       expect(tokenStorage.getRefreshToken()).toBeNull();
@@ -93,7 +93,7 @@ describe('tokenStorage', () => {
 
     it('should return null in server environment', () => {
       const originalWindow = global.window;
-      // @ts-ignore
+      // @ts-expect-error - Intentionally deleting window for test
       delete global.window;
 
       expect(tokenStorage.getTokens()).toBeNull();
@@ -129,7 +129,7 @@ describe('tokenStorage', () => {
       localStorage.clear();
 
       const originalWindow = global.window;
-      // @ts-ignore
+      // @ts-expect-error - Intentionally deleting window for test
       delete global.window;
 
       tokenStorage.setTokens('access', 'refresh', 3600);
@@ -173,7 +173,7 @@ describe('tokenStorage', () => {
       global.window = originalWindow; // Ensure window is available
       localStorage.setItem('access_token', 'token');
 
-      // @ts-ignore
+      // @ts-expect-error - Intentionally deleting window for test
       delete global.window;
 
       tokenStorage.clearTokens();
@@ -212,7 +212,7 @@ describe('tokenStorage', () => {
 
     it('should return true in server environment', () => {
       const originalWindow = global.window;
-      // @ts-ignore
+      // @ts-expect-error - Intentionally deleting window for test
       delete global.window;
 
       expect(tokenStorage.isTokenExpired()).toBe(true);
@@ -253,7 +253,8 @@ describe('tokenStorage', () => {
 
 describe('jwtUtils', () => {
   // Sample JWT token (payload: {"sub":"123","name":"Test","exp":9999999999})
-  const sampleToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMiLCJuYW1lIjoiVGVzdCIsImV4cCI6OTk5OTk5OTk5OX0.signature';
+  const sampleToken =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMiLCJuYW1lIjoiVGVzdCIsImV4cCI6OTk5OTk5OTk5OX0.signature';
 
   describe('parseJWT', () => {
     it('should parse valid JWT token', () => {
@@ -308,7 +309,8 @@ describe('jwtUtils', () => {
 
     it('should return null for token without exp claim', () => {
       // Token without exp: {"sub":"123","name":"Test"}
-      const tokenWithoutExp = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMiLCJuYW1lIjoiVGVzdCJ9.signature';
+      const tokenWithoutExp =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMiLCJuYW1lIjoiVGVzdCJ9.signature';
       const expiry = jwtUtils.getTokenExpiry(tokenWithoutExp);
 
       expect(expiry).toBeNull();

@@ -6,11 +6,7 @@
 import React, { useCallback } from 'react';
 import { Field, FieldProps, FormikProps } from 'formik';
 import { Input } from 'antd';
-import {
-  FileTextOutlined,
-  MedicineBoxOutlined,
-  ExperimentOutlined,
-} from '@ant-design/icons';
+import { FileTextOutlined, MedicineBoxOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { ConsultationFormValues } from '../types/consultation.types';
 import {
   useComplaintTemplates,
@@ -32,8 +28,7 @@ interface BasicInfoSectionProps {
 
 export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ formik }) => {
   // Fetch templates
-  const { data: complaintTemplates = [], isLoading: complaintsLoading } =
-    useComplaintTemplates();
+  const { data: complaintTemplates = [], isLoading: complaintsLoading } = useComplaintTemplates();
   const { data: examinationTemplates = [], isLoading: examinationsLoading } =
     useExaminationTemplates();
   const { data: adviceTemplates = [], isLoading: advicesLoading } = useAdviceTemplates();
@@ -87,7 +82,7 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ formik }) =>
               templates={complaintTemplates}
               isLoading={complaintsLoading}
               onSelect={handleComplaintSelect}
-              getDisplayValue={(template) => template.description}
+              getDisplayValue={(template) => template.description || ''}
               placeholder="Search complaint templates..."
               height="250px"
             />
@@ -108,7 +103,7 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ formik }) =>
               )}
             </Field>
             <p className="text-xs text-gray-500 mt-1">
-              Document the main reasons for the patient's visit and primary symptoms
+              Document the main reasons for the patient&apos;s visit and primary symptoms
             </p>
           </div>
         </div>
@@ -127,7 +122,7 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ formik }) =>
               templates={examinationTemplates}
               isLoading={examinationsLoading}
               onSelect={handleExaminationSelect}
-              getDisplayValue={(template) => template.description}
+              getDisplayValue={(template) => template.description || ''}
               placeholder="Search examination templates..."
               height="250px"
             />
@@ -167,7 +162,7 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ formik }) =>
               templates={adviceTemplates}
               isLoading={advicesLoading}
               onSelect={handleAdviceSelect}
-              getDisplayValue={(template) => template.description}
+              getDisplayValue={(template) => template.description || ''}
               placeholder="Search advice templates..."
               height="250px"
             />
@@ -197,8 +192,8 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ formik }) =>
       {/* Info Box */}
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-900">
-          <strong>💡 Tip:</strong> Use templates from the left panel to quickly add common
-          findings. Templates will be appended to your current text.
+          <strong>💡 Tip:</strong> Use templates from the left panel to quickly add common findings.
+          Templates will be appended to your current text.
         </p>
       </div>
     </div>

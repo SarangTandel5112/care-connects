@@ -17,7 +17,7 @@ import {
   EditOutlined,
   DeleteOutlined,
 } from '@ant-design/icons';
-import type { Patient } from '@/types/patient';
+import type { Patient } from '@/modules/patient/types/patient.types';
 import { usePatients } from '@/modules/patient/hooks/usePatients';
 
 interface PatientTableAntdProps {
@@ -197,7 +197,9 @@ export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = 
         <div className="p-4">
           <Alert
             message="Error Loading Patients"
-            description={(error as any)?.message || 'Failed to load patient data. Please try again.'}
+            description={
+              (error as any)?.message || 'Failed to load patient data. Please try again.'
+            }
             type="error"
             showIcon
             closable

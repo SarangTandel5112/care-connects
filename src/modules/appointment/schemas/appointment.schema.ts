@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { AppointmentStatus } from '../types/appointment.types';
 
 export const AppointmentStatusEnum = z.enum([
   'Scheduled',

@@ -13,8 +13,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const isPasswordField = type === 'password';
     const inputType = isPasswordField && showPassword ? 'text' : type;
 
-    // Generate unique ID if not provided
-    const inputId = id || React.useId();
+    // Generate unique ID if not provided - always call useId
+    const generatedId = React.useId();
+    const inputId = id || generatedId;
 
     return (
       <div className="w-full">

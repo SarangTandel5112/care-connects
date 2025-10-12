@@ -29,7 +29,7 @@ export const DebugAuth = () => {
                   ? {
                       id: user.id,
                       email: user.email,
-                      name: user.name,
+                      name: (user as { name?: string })?.name || 'N/A',
                       role: user.role,
                     }
                   : null,

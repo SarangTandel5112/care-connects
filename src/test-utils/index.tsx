@@ -20,17 +20,12 @@ export const createTestQueryClient = () =>
         retry: false,
       },
     },
-    logger: {
-      log: console.log,
-      warn: console.warn,
-      error: () => {}, // Suppress error logs in tests
-    },
   });
 
 /**
  * Create a test Redux store
  */
-export const createTestStore = (preloadedState?: any) =>
+export const createTestStore = (preloadedState?: unknown) =>
   configureStore({
     reducer: {
       auth: authReducer,
@@ -48,11 +43,7 @@ interface AllProvidersProps {
   store?: ReturnType<typeof createTestStore>;
 }
 
-export const AllProviders: React.FC<AllProvidersProps> = ({
-  children,
-  queryClient,
-  store,
-}) => {
+export const AllProviders: React.FC<AllProvidersProps> = ({ children, queryClient, store }) => {
   const testQueryClient = queryClient || createTestQueryClient();
   const testStore = store || createTestStore();
 

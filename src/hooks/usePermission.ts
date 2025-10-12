@@ -7,7 +7,7 @@ import { useCurrentUser } from '@/modules/auth/hooks/useAuth';
 // Get user permissions (if you have a permissions system)
 export const useUserPermissions = () => {
   const { data: user } = useCurrentUser();
-  return user?.permissions || [];
+  return (user as { permissions?: string[] })?.permissions || [];
 };
 
 // Check if user has specific permission

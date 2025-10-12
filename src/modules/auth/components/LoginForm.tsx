@@ -54,7 +54,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ redirectTo = '/dashboard' 
       transition={{ duration: 0.3, delay: 0.5 }}
     >
       <form onSubmit={formik.handleSubmit} className="space-y-6">
-        <ErrorMessage message={errorMessage} />
+        {errorMessage && <ErrorMessage message={errorMessage} />}
 
         <Field
           label="Email Address"
@@ -77,7 +77,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ redirectTo = '/dashboard' 
           value={formik.values.password}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          error={formik.touched.password && formik.errors.password ? formik.errors.password : undefined}
+          error={
+            formik.touched.password && formik.errors.password ? formik.errors.password : undefined
+          }
           disabled={isPending}
           className="w-full"
         />

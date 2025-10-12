@@ -22,24 +22,21 @@ import type { User, AuthTokens } from '@/types/auth';
  * @param state - Root state
  * @returns Current user or null
  */
-export const selectCurrentUser = (state: RootState): User | null =>
-  state.user.currentUser;
+export const selectCurrentUser = (state: RootState): User | null => state.user.currentUser;
 
 /**
  * Select user loading state
  * @param state - Root state
  * @returns User loading state
  */
-export const selectUserLoading = (state: RootState): boolean =>
-  state.user.isLoading;
+export const selectUserLoading = (state: RootState): boolean => state.user.isLoading;
 
 /**
  * Select user error message
  * @param state - Root state
  * @returns User error message or null
  */
-export const selectUserError = (state: RootState): string | null =>
-  state.user.error;
+export const selectUserError = (state: RootState): string | null => state.user.error;
 
 /**
  * Select user role
@@ -55,7 +52,7 @@ export const selectUserRole = (state: RootState): User['role'] | undefined =>
  * @returns User permissions array or empty array
  */
 export const selectUserPermissions = (state: RootState): string[] =>
-  state.user.currentUser?.permissions || [];
+  (state.user.currentUser as { permissions?: string[] })?.permissions || [];
 
 /**
  * Select user email
@@ -71,15 +68,14 @@ export const selectUserEmail = (state: RootState): string | undefined =>
  * @returns User name or undefined
  */
 export const selectUserName = (state: RootState): string | undefined =>
-  state.user.currentUser?.name;
+  (state.user.currentUser as { name?: string })?.name;
 
 /**
  * Select user ID
  * @param state - Root state
  * @returns User ID or undefined
  */
-export const selectUserId = (state: RootState): string | undefined =>
-  state.user.currentUser?.id;
+export const selectUserId = (state: RootState): string | undefined => state.user.currentUser?.id;
 
 // ============================================
 // Auth Selectors
@@ -90,16 +86,14 @@ export const selectUserId = (state: RootState): string | undefined =>
  * @param state - Root state
  * @returns Authentication status
  */
-export const selectIsAuthenticated = (state: RootState): boolean =>
-  state.auth.isAuthenticated;
+export const selectIsAuthenticated = (state: RootState): boolean => state.auth.isAuthenticated;
 
 /**
  * Select authentication tokens
  * @param state - Root state
  * @returns Auth tokens or null
  */
-export const selectAuthTokens = (state: RootState): AuthTokens | null =>
-  state.auth.tokens;
+export const selectAuthTokens = (state: RootState): AuthTokens | null => state.auth.tokens;
 
 /**
  * Select access token
@@ -122,16 +116,14 @@ export const selectRefreshToken = (state: RootState): string | undefined =>
  * @param state - Root state
  * @returns Auth loading state
  */
-export const selectAuthLoading = (state: RootState): boolean =>
-  state.auth.isLoading;
+export const selectAuthLoading = (state: RootState): boolean => state.auth.isLoading;
 
 /**
  * Select auth error message
  * @param state - Root state
  * @returns Auth error message or null
  */
-export const selectAuthError = (state: RootState): string | null =>
-  state.auth.error;
+export const selectAuthError = (state: RootState): string | null => state.auth.error;
 
 // ============================================
 // Combined/Computed Selectors
@@ -142,20 +134,24 @@ export const selectAuthError = (state: RootState): string | null =>
  * @param permission - Permission to check
  * @returns Function that checks if user has the permission
  */
-export const selectHasPermission = (permission: string) => (state: RootState): boolean => {
-  const permissions = selectUserPermissions(state);
-  return permissions.includes(permission);
-};
+export const selectHasPermission =
+  (permission: string) =>
+  (state: RootState): boolean => {
+    const permissions = selectUserPermissions(state);
+    return permissions.includes(permission);
+  };
 
 /**
  * Check if user has a specific role
  * @param role - Role to check
  * @returns Function that checks if user has the role
  */
-export const selectHasRole = (role: User['role']) => (state: RootState): boolean => {
-  const userRole = selectUserRole(state);
-  return userRole === role;
-};
+export const selectHasRole =
+  (role: User['role']) =>
+  (state: RootState): boolean => {
+    const userRole = selectUserRole(state);
+    return userRole === role;
+  };
 
 /**
  * Check if both user and auth are loading

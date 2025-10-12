@@ -7,8 +7,12 @@
 import React, { useState } from 'react';
 import { FormikProps } from 'formik';
 import { Modal, Select, Input, Button, Tag, Table } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { ConsultationFormValues, CreateClinicalExamination, ConditionType } from '../types/consultation.types';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {
+  ConsultationFormValues,
+  CreateClinicalExamination,
+  ConditionType,
+} from '../types/consultation.types';
 import Image from 'next/image';
 
 const { TextArea } = Input;
@@ -127,7 +131,11 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
         type="button"
         onClick={() => handleToothClick(toothNumber)}
         className="relative cursor-pointer bg-transparent border-0 p-0 m-0"
-        title={hasCondition ? `Tooth ${toothNumber} - ${examination.examination.conditionType}` : `Tooth ${toothNumber}`}
+        title={
+          hasCondition
+            ? `Tooth ${toothNumber} - ${examination.examination.conditionType}`
+            : `Tooth ${toothNumber}`
+        }
       >
         <div className="relative">
           <Image
@@ -136,14 +144,14 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
             width={50}
             height={50}
             className={`m-0 rounded-lg hover:bg-[#0000000f] transition-all duration-200 ${
-              isLowerJaw ? "-scale-y-100" : ""
+              isLowerJaw ? '-scale-y-100' : ''
             }`}
           />
           {hasCondition && (
             <span className="absolute bottom-0 right-0 w-3 h-3 bg-yellow-400 rounded-full border border-white"></span>
           )}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className={`text-xs font-semibold ${isLowerJaw ? "-scale-y-100" : ""}`}>
+            <span className={`text-xs font-semibold ${isLowerJaw ? '-scale-y-100' : ''}`}>
               {toothNumber}
             </span>
           </div>
@@ -159,7 +167,10 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
         <h4 className="text-sm font-semibold text-gray-900 mb-3">Tooth Conditions Legend:</h4>
         <div className="flex flex-wrap gap-2">
           {Object.entries(ConditionType).map(([key, value]) => {
-            let tagColor = conditionColors[value].replace('bg-', '').replace('-500', '').replace('-700', '');
+            let tagColor = conditionColors[value]
+              .replace('bg-', '')
+              .replace('-500', '')
+              .replace('-700', '');
             // Special handling for slate color (Missing)
             if (value === ConditionType.MISSING) {
               tagColor = 'default'; // Use dark gray for better visibility
@@ -207,9 +218,7 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
               </span>
               Recorded Examinations
             </h4>
-            <span className="text-xs text-blue-700 font-medium">
-              Click on any row to edit
-            </span>
+            <span className="text-xs text-blue-700 font-medium">Click on any row to edit</span>
           </div>
           <Table
             dataSource={formik.values.clinicalExaminations}
@@ -228,15 +237,15 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
                 key: 'conditionType',
                 width: '25%',
                 render: (type: string) => {
-                  let tagColor = conditionColors[type].replace('bg-', '').replace('-500', '').replace('-700', '');
+                  let tagColor =
+                    (conditionColors as Record<string, string>)[type]
+                      ?.replace('bg-', '')
+                      .replace('-500', '')
+                      .replace('-700', '') || 'default';
                   if (type === ConditionType.MISSING) {
                     tagColor = 'default';
                   }
-                  return (
-                    <Tag color={tagColor}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </Tag>
-                  );
+                  return <Tag color={tagColor}>{type.charAt(0).toUpperCase() + type.slice(1)}</Tag>;
                 },
               },
               {
@@ -312,9 +321,7 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Tooth Number</label>
               <div className="bg-gray-100 px-3 py-2 rounded border border-gray-300">
-                <span className="text-lg font-semibold text-gray-900">
-                  {modalData.toothNumber}
-                </span>
+                <span className="text-lg font-semibold text-gray-900">{modalData.toothNumber}</span>
               </div>
             </div>
 
@@ -335,16 +342,17 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
                 size="large"
               >
                 {Object.entries(ConditionType).map(([key, value]) => {
-                  let tagColor = conditionColors[value].replace('bg-', '').replace('-500', '').replace('-700', '');
+                  let tagColor = conditionColors[value]
+                    .replace('bg-', '')
+                    .replace('-500', '')
+                    .replace('-700', '');
                   // Special handling for slate color (Missing)
                   if (value === ConditionType.MISSING) {
                     tagColor = 'default'; // Use dark gray for better visibility
                   }
                   return (
                     <Option key={key} value={value}>
-                      <Tag color={tagColor}>
-                        {value.charAt(0).toUpperCase() + value.slice(1)}
-                      </Tag>
+                      <Tag color={tagColor}>{value.charAt(0).toUpperCase() + value.slice(1)}</Tag>
                     </Option>
                   );
                 })}
