@@ -61,7 +61,7 @@ export interface Appointment extends BaseAppointment {
   updatedAt: Date;
 }
 
-export interface CreateAppointment extends BaseAppointment {}
+export type CreateAppointment = BaseAppointment;
 
 export interface UpdateAppointment extends Partial<CreateAppointment> {
   id: string;

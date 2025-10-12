@@ -54,29 +54,32 @@ const AppointmentCalendarComponent: React.FC<AppointmentCalendarProps> = ({
     }));
   }, [appointments, getStatusColor]);
 
-  const eventStyleGetter = useCallback((event: any) => {
-    return {
-      style: {
-        backgroundColor: event.style.backgroundColor,
-        borderColor: event.style.borderColor,
-        color: event.style.color,
-        borderRadius: '4px',
-        border: 'none',
-        fontSize: '12px',
-        padding: '2px 4px',
-      },
-    };
-  }, []);
+  const eventStyleGetter = useCallback(
+    (event: { style: { backgroundColor: string; borderColor: string; color: string } }) => {
+      return {
+        style: {
+          backgroundColor: event.style.backgroundColor,
+          borderColor: event.style.borderColor,
+          color: event.style.color,
+          borderRadius: '4px',
+          border: 'none',
+          fontSize: '12px',
+          padding: '2px 4px',
+        },
+      };
+    },
+    []
+  );
 
   const handleSelectEvent = useCallback(
-    (event: any) => {
+    (event: { resource: Appointment }) => {
       onSelectAppointment(event.resource);
     },
     [onSelectAppointment]
   );
 
   const handleSelectSlot = useCallback(
-    (slotInfo: any) => {
+    (slotInfo: { start: Date; end: Date }) => {
       onSelectSlot({
         start: slotInfo.start,
         end: slotInfo.end,
@@ -85,13 +88,10 @@ const AppointmentCalendarComponent: React.FC<AppointmentCalendarProps> = ({
     [onSelectSlot]
   );
 
-  const handleDrillDown = useCallback(
-    (date: Date) => {
-      setCurrentDate(date);
-      setCurrentView('day');
-    },
-    []
-  );
+  const handleDrillDown = useCallback((date: Date) => {
+    setCurrentDate(date);
+    setCurrentView('day');
+  }, []);
 
   if (isLoading) {
     return (

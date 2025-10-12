@@ -7,13 +7,9 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input } from '@/components/ui';
 import {
-  PlusIcon,
-  SearchIcon,
-  DownloadIcon,
   DocumentIcon,
   FileTextIcon,
   ClipboardListIcon,
@@ -24,22 +20,19 @@ import {
 } from '@/components/ui/icons';
 
 export default function Templates() {
-  const [searchText, setSearchText] = useState('');
   const router = useRouter();
 
-  const handleSearch = (value: string) => {
-    setSearchText(value);
-  };
-
-  const handleAddTemplate = () => {
-    // TODO: Implement add template functionality
-    console.log('Add template clicked');
-  };
-
-  const handleImportTemplate = () => {
-    // TODO: Implement import template functionality
-    console.log('Import template clicked');
-  };
+  // These functions are not used in the current implementation
+  // const [searchText, setSearchText] = useState('');
+  // const handleSearch = (value: string) => {
+  //   setSearchText(value);
+  // };
+  // const handleAddTemplate = () => {
+  //   console.log('Add template clicked');
+  // };
+  // const handleImportTemplate = () => {
+  //   console.log('Import template clicked');
+  // };
 
   const handleTemplateTypeClick = (type: string) => {
     router.push(`/templates/${type}`);

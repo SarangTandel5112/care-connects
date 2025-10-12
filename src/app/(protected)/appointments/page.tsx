@@ -18,7 +18,6 @@ import {
   UpdateAppointment,
 } from '@/modules/appointment/types/appointment.types';
 import {
-  useAppointments,
   useCreateAppointment,
   useUpdateAppointment,
   useDeleteAppointment,
@@ -35,7 +34,7 @@ export default function AppointmentsPage() {
   const [prefilledTimes, setPrefilledTimes] = useState<{ start: Date; end: Date } | null>(null);
 
   // API hooks
-  const { data: appointments, isLoading } = useAppointments();
+  // Note: appointments data is fetched by AppointmentCalendar component internally
   const createAppointment = useCreateAppointment();
   const updateAppointment = useUpdateAppointment();
   const deleteAppointment = useDeleteAppointment();
@@ -59,16 +58,17 @@ export default function AppointmentsPage() {
     setIsModalOpen(true);
   };
 
-  const handleEditAppointment = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setModalMode('edit');
-    setIsModalOpen(true);
-  };
+  // These functions are not used in the current implementation
+  // const handleEditAppointment = (appointment: Appointment) => {
+  //   setSelectedAppointment(appointment);
+  //   setModalMode('edit');
+  //   setIsModalOpen(true);
+  // };
 
-  const handleDeleteAppointment = (appointment: Appointment) => {
-    setAppointmentToDelete(appointment);
-    setIsDeleteModalOpen(true);
-  };
+  // const handleDeleteAppointment = (appointment: Appointment) => {
+  //   setAppointmentToDelete(appointment);
+  //   setIsDeleteModalOpen(true);
+  // };
 
   const handleSave = async (data: CreateAppointment | UpdateAppointment) => {
     try {

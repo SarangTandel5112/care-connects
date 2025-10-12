@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import Button from '../Button/Button';
 
 interface ModalProps {
   isOpen: boolean;
