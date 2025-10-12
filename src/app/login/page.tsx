@@ -64,7 +64,6 @@ export default function LoginPage() {
         </div>
 
         {/* Debug component to see Redux and localStorage state */}
-        <DebugAuth />
       </motion.div>
     </AnimatePresence>
   );
