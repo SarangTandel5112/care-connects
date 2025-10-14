@@ -8,7 +8,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Table, Input, Button, Space, Tag, Dropdown, Spin, Alert } from 'antd';
+import { Table, Input, Button, Space, Tag, Alert } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 import {
   SearchOutlined,
@@ -17,8 +17,10 @@ import {
   EditOutlined,
   DeleteOutlined,
 } from '@ant-design/icons';
-import type { Patient } from '@/modules/patient/types/patient.types';
-import { usePatients } from '@/modules/patient/hooks/usePatients';
+import type { Patient, CreatePatient, UpdatePatient } from '@/modules/patient/types/patient.types';
+import { usePatients, useCreatePatient, useUpdatePatient, useDeletePatient } from '@/modules/patient/hooks/usePatients';
+import { PatientModal } from '@/modules/patient/components/PatientModal';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 
 interface PatientTableAntdProps {
   className?: string;
@@ -26,9 +28,30 @@ interface PatientTableAntdProps {
 
 export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = '' }) => {
   const [searchText, setSearchText] = useState('');
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    mode: 'view' | 'create' | 'edit';
+    patient?: Patient;
+  }>({
+    isOpen: false,
+    mode: 'create',
+    patient: undefined,
+  });
+  const [deleteConfirmState, setDeleteConfirmState] = useState<{
+    isOpen: boolean;
+    patient?: Patient;
+  }>({
+    isOpen: false,
+    patient: undefined,
+  });
 
   // Fetch patients from API
   const { data: patients = [], isLoading, isError, error } = usePatients();
+
+  // Mutation hooks
+  const createPatient = useCreatePatient();
+  const updatePatient = useUpdatePatient();
+  const deletePatient = useDeletePatient();
 
   // Filter patients based on search text
   const filteredPatients = useMemo(() => {
@@ -56,19 +79,65 @@ export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = 
   };
 
   const handleView = (patientId: string) => {
-    console.log('View patient:', patientId);
+    const patient = patients.find((p) => p.id === patientId);
+    if (patient) {
+      setModalState({ isOpen: true, mode: 'view', patient });
+    }
   };
 
   const handleEdit = (patientId: string) => {
-    console.log('Edit patient:', patientId);
+    const patient = patients.find((p) => p.id === patientId);
+    if (patient) {
+      setModalState({ isOpen: true, mode: 'edit', patient });
+    }
   };
 
   const handleDelete = (patientId: string) => {
-    console.log('Delete patient:', patientId);
+    const patient = patients.find((p) => p.id === patientId);
+    if (patient) {
+      setDeleteConfirmState({ isOpen: true, patient });
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteConfirmState.patient) {
+      deletePatient.mutate(deleteConfirmState.patient.id, {
+        onSuccess: () => {
+          setDeleteConfirmState({ isOpen: false, patient: undefined });
+        },
+        onError: () => {
+          setDeleteConfirmState({ isOpen: false, patient: undefined });
+        },
+      });
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmState({ isOpen: false, patient: undefined });
   };
 
   const handleAddPatient = () => {
-    console.log('Add patient clicked');
+    setModalState({ isOpen: true, mode: 'create', patient: undefined });
+  };
+
+  const handleModalClose = () => {
+    setModalState({ isOpen: false, mode: 'create', patient: undefined });
+  };
+
+  const handleModalSave = (data: CreatePatient | UpdatePatient) => {
+    if (modalState.mode === 'create') {
+      createPatient.mutate(data as CreatePatient, {
+        onSuccess: () => {
+          handleModalClose();
+        },
+      });
+    } else if (modalState.mode === 'edit') {
+      updatePatient.mutate({ data: data as UpdatePatient, id: modalState.patient!.id }, {
+        onSuccess: () => {
+          handleModalClose();
+        },
+      });
+    }
   };
 
   const columns: TableColumnsType<Patient> = [
@@ -125,6 +194,7 @@ export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = 
       title: '',
       key: 'action',
       width: 120,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -164,21 +234,19 @@ export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = 
       showSizeChanger: true,
       showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} patients`,
       pageSizeOptions: ['5', '10', '20', '50'],
+      position: ['bottomCenter'],
     },
     scroll: {
       x: 800,
-      y: 320, // Balanced height for optimal pagination positioning
     },
-    sticky: {
-      offsetHeader: 0, // No offset needed since we're in a contained layout
-    },
+    sticky: true,
     size: 'middle',
   };
 
   return (
-    <div className={`h-full w-full flex flex-col bg-white p-2 ${className}`}>
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4 p-4 border-b border-gray-200 flex-shrink-0">
+    <div className={`h-full w-full flex flex-col bg-white ${className}`}>
+      {/* Toolbar - Sticky Header */}
+      <div className="flex items-center justify-between gap-4 p-4 border-b border-gray-200 flex-shrink-0 bg-white z-10">
         <Input
           placeholder="Search patients by name or mobile..."
           prefix={<SearchOutlined />}
@@ -194,11 +262,11 @@ export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = 
 
       {/* Error State */}
       {isError && (
-        <div className="p-4">
+        <div className="p-4 flex-shrink-0">
           <Alert
             message="Error Loading Patients"
             description={
-              (error as any)?.message || 'Failed to load patient data. Please try again.'
+              error instanceof Error ? error.message : 'Failed to load patient data. Please try again.'
             }
             type="error"
             showIcon
@@ -207,10 +275,83 @@ export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = 
         </div>
       )}
 
-      {/* Table */}
-      <div className="flex-1 min-h-0">
-        <Table {...tableProps} />
+      {/* Table Container - Takes remaining space */}
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+        <style jsx global>{`
+          .patient-table-wrapper .ant-table-wrapper {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+          .patient-table-wrapper .ant-spin-nested-loading {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+          .patient-table-wrapper .ant-spin-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+          .patient-table-wrapper .ant-table {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+          }
+          .patient-table-wrapper .ant-table-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+          }
+          .patient-table-wrapper .ant-table-body {
+            flex: 1;
+            overflow-y: auto !important;
+            overflow-x: auto;
+          }
+          .patient-table-wrapper .ant-table-pagination {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            z-index: 10;
+            padding: 16px 16px;
+            margin: 0 !important;
+            border-top: 1px solid #f0f0f0;
+            flex-shrink: 0;
+          }
+        `}</style>
+        <div className="patient-table-wrapper h-full">
+          <Table {...tableProps} />
+        </div>
       </div>
+
+      {/* Patient Modal */}
+      <PatientModal
+        isOpen={modalState.isOpen}
+        onClose={handleModalClose}
+        mode={modalState.mode}
+        patient={modalState.patient}
+        onSave={handleModalSave}
+        isLoading={createPatient.isPending || updatePatient.isPending}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirmState.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Patient"
+        message={
+          deleteConfirmState.patient
+            ? `Are you sure you want to delete ${deleteConfirmState.patient.firstName} ${deleteConfirmState.patient.lastName}'s record? This action cannot be undone.`
+            : 'Are you sure you want to delete this patient?'
+        }
+        confirmText="Yes, Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deletePatient.isPending}
+      />
     </div>
   );
 };

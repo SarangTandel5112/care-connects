@@ -13,7 +13,7 @@ jest.mock('next/navigation', () => ({
 // Mock useLogin hook
 const mockMutateAsync = jest.fn();
 let mockIsPending = false;
-let mockError: any = null;
+let mockError: { message?: string } | null = null;
 
 jest.mock('@/modules/auth/hooks/useAuth', () => ({
   useLogin: () => ({
@@ -25,13 +25,13 @@ jest.mock('@/modules/auth/hooks/useAuth', () => ({
 
 // Mock extractErrorMessage
 jest.mock('@/utils/errorHandling', () => ({
-  extractErrorMessage: (error: any) => error?.message || '',
+  extractErrorMessage: (error: unknown) => error?.message || '',
 }));
 
 // Mock framer-motion to avoid animation issues in tests
 jest.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: unknown) => <div {...props}>{children}</div>,
   },
 }));
 

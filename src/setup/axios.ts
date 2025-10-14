@@ -143,12 +143,12 @@ Axios.interceptors.response.use(
         if (typeof responseData === 'string') {
           errorMessage = responseData;
         } else if (responseData && typeof responseData === 'object') {
-          const data = responseData as any;
-          if (data.message) {
+          const data = responseData as Record<string, unknown>;
+          if (typeof data.message === 'string') {
             errorMessage = data.message;
-          } else if (data.error) {
+          } else if (typeof data.error === 'string') {
             errorMessage = data.error;
-          } else if (data.details) {
+          } else if (typeof data.details === 'string') {
             errorMessage = data.details;
           }
         }

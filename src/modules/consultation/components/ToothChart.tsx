@@ -29,8 +29,8 @@ interface ToothExaminationModalData {
 }
 
 // Tooth numbering: 1-16 upper teeth (right to left), 17-32 lower teeth (right to left)
-const upperTeeth = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-const lowerTeeth = [32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17];
+const upperTeeth = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28];
+const lowerTeeth = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38];
 
 // Condition colors for visual representation
 const conditionColors: Record<ConditionType, string> = {
@@ -40,7 +40,7 @@ const conditionColors: Record<ConditionType, string> = {
   [ConditionType.MISSING]: 'bg-slate-700',
   [ConditionType.MOBILITY]: 'bg-yellow-500',
   [ConditionType.PERIAPICALABSCESS]: 'bg-pink-500',
-  [ConditionType.ROOTSTUMP]: 'bg-amber-700',
+  [ConditionType.ROOTSTUMP]: 'bg-orange-600',
   [ConditionType.SUPRAERUPTED]: 'bg-blue-500',
 };
 
@@ -123,7 +123,9 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
   const renderTooth = (toothNumber: number) => {
     const examination = getToothExamination(toothNumber);
     const hasCondition = examination !== null;
-    const isLowerJaw = toothNumber >= 17 && toothNumber <= 32;
+    const isLowerJaw = toothNumber >= 31 && toothNumber <= 48;
+    const shouldFlip =
+      (toothNumber >= 21 && toothNumber <= 28) || (toothNumber >= 41 && toothNumber <= 48);
 
     return (
       <button
@@ -144,14 +146,14 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
             width={50}
             height={50}
             className={`m-0 rounded-lg hover:bg-[#0000000f] transition-all duration-200 ${
-              isLowerJaw ? '-scale-y-100' : ''
+              shouldFlip ? '-scale-y-100' : ''
             }`}
           />
           {hasCondition && (
             <span className="absolute bottom-0 right-0 w-3 h-3 bg-yellow-400 rounded-full border border-white"></span>
           )}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className={`text-xs font-semibold ${isLowerJaw ? '-scale-y-100' : ''}`}>
+            <span className={`text-xs font-semibold ${shouldFlip ? '-scale-y-100' : ''}`}>
               {toothNumber}
             </span>
           </div>
@@ -170,6 +172,7 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
             let tagColor = conditionColors[value]
               .replace('bg-', '')
               .replace('-500', '')
+              .replace('-600', '')
               .replace('-700', '');
             // Special handling for slate color (Missing)
             if (value === ConditionType.MISSING) {
@@ -210,16 +213,8 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
 
       {/* Summary */}
       {formik.values.clinicalExaminations.length > 0 && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-lg border border-blue-300 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base font-bold text-blue-900 flex items-center gap-2">
-              <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
-                {formik.values.clinicalExaminations.length}
-              </span>
-              Recorded Examinations
-            </h4>
-            <span className="text-xs text-blue-700 font-medium">Click on any row to edit</span>
-          </div>
+        <div>
+          <h3 className="text-md font-semibold text-gray-900 mb-2">Recorded Examinations</h3>
           <Table
             dataSource={formik.values.clinicalExaminations}
             columns={[
@@ -241,6 +236,7 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
                     (conditionColors as Record<string, string>)[type]
                       ?.replace('bg-', '')
                       .replace('-500', '')
+                      .replace('-600', '')
                       .replace('-700', '') || 'default';
                   if (type === ConditionType.MISSING) {
                     tagColor = 'default';
@@ -257,17 +253,25 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
               {
                 title: 'Actions',
                 key: 'actions',
-                width: '12%',
+                width: '20%',
                 align: 'center' as const,
-                render: (_: any, record: any) => (
-                  <Button
-                    size="small"
-                    type="primary"
-                    icon={<EditOutlined />}
-                    onClick={() => handleToothClick(record.toothNumber)}
-                  >
-                    Edit
-                  </Button>
+                render: (_: unknown, record: CreateClinicalExamination, index: number) => (
+                  <div className="flex gap-2 justify-center">
+                    <Button size="small" onClick={() => handleToothClick(record.toothNumber)}>
+                      Edit
+                    </Button>
+                    <Button
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => {
+                        const updatedExaminations = formik.values.clinicalExaminations.filter(
+                          (_, i) => i !== index
+                        );
+                        formik.setFieldValue('clinicalExaminations', updatedExaminations);
+                      }}
+                    />
+                  </div>
                 ),
               },
             ]}
@@ -275,7 +279,7 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
             pagination={false}
             bordered
             size="small"
-            className="bg-white"
+            locale={{ emptyText: 'No examinations recorded yet' }}
           />
         </div>
       )}
@@ -345,6 +349,7 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
                   let tagColor = conditionColors[value]
                     .replace('bg-', '')
                     .replace('-500', '')
+                    .replace('-600', '')
                     .replace('-700', '');
                   // Special handling for slate color (Missing)
                   if (value === ConditionType.MISSING) {

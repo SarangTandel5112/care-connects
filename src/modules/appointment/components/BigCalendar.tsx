@@ -14,11 +14,19 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const localizer = momentLocalizer(moment);
 
+interface Appointment {
+  id: string;
+  treatment: string;
+  appointmentStartTime: string;
+  appointmentEndTime: string;
+  status: string;
+}
+
 interface CalendarProps {
   /**
    * Array of appointments to display
    */
-  appointments: any[];
+  appointments: Appointment[];
   /**
    * Slot selection handler
    */
@@ -26,7 +34,7 @@ interface CalendarProps {
   /**
    * Event selection handler
    */
-  onSelectEvent: (event: any) => void;
+  onSelectEvent: (event: Appointment & { title: string; start: Date; end: Date }) => void;
   /**
    * Additional CSS classes
    */

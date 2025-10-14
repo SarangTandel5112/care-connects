@@ -52,7 +52,9 @@ export function useApiPost<TData, TVariables>(
 
       // For update operations, extract only the data part (exclude id)
       const requestData =
-        (variables as any).data !== undefined ? (variables as any).data : variables;
+        typeof variables === 'object' && variables !== null && 'data' in variables
+          ? (variables as { data: unknown }).data
+          : variables;
 
       // For DELETE requests, don't send body if variables is a primitive (string/number)
       const isPrimitive =
@@ -103,12 +105,12 @@ export function useApiPost<TData, TVariables>(
             if (typeof responseData === 'string') {
               errorMessage = responseData;
             } else if (responseData && typeof responseData === 'object') {
-              const data = responseData as any;
-              if (data.message) {
+              const data = responseData as Record<string, unknown>;
+              if (typeof data.message === 'string') {
                 errorMessage = data.message;
-              } else if (data.error) {
+              } else if (typeof data.error === 'string') {
                 errorMessage = data.error;
-              } else if (data.details) {
+              } else if (typeof data.details === 'string') {
                 errorMessage = data.details;
               }
             }

@@ -26,12 +26,6 @@ export const ToothExaminationSection: React.FC<ToothExaminationSectionProps> = (
       <ToothChart formik={formik} />
 
       {/* Info Box */}
-      <div className="p-4 bg-green-50 border border-green-200 rounded-lg mt-6">
-        <p className="text-sm text-green-900">
-          <strong>📋 Instructions:</strong> Click on individual teeth to add or edit examination
-          records. Select the condition type and add detailed notes for each affected tooth.
-        </p>
-      </div>
     </div>
   );
 };

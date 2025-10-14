@@ -245,7 +245,7 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
               </div>
 
               {/* Form Actions */}
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end space-x-3 py-4 border-t border-gray-200">
                 <Button
                   variant="secondary"
                   onClick={onCancel}

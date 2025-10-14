@@ -1,12 +1,14 @@
 /**
  * Appointment Date Selector Component
  * Date picker for selecting appointment viewing date
- * Professional medical application design
+ * Professional medical application design with Ant Design DatePicker
  * Following Single Responsibility Principle
  */
 
 import React from 'react';
-import { CalendarIcon } from '@/components/ui/icons';
+import { DatePicker } from 'antd';
+import dayjs, { Dayjs } from 'dayjs';
+import { CalendarOutlined } from '@ant-design/icons';
 
 interface AppointmentDateSelectorProps {
   /**
@@ -24,41 +26,54 @@ interface AppointmentDateSelectorProps {
 }
 
 /**
- * Date selector with calendar icon
- * Displays formatted date (DD MMM YYYY)
+ * Date selector with calendar picker
+ * Displays formatted date with clickable calendar popup
  */
 export const AppointmentDateSelector: React.FC<AppointmentDateSelectorProps> = ({
   selectedDate,
   onChange,
   className = '',
 }) => {
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
+  const handleDateChange = (date: Dayjs | null) => {
+    if (date) {
+      onChange(date.toDate());
+    }
   };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(new Date(e.target.value));
-  };
-
-  const dateInputValue = selectedDate.toISOString().split('T')[0];
 
   return (
-    <div className={`relative inline-flex items-center ${className}`}>
-      <input
-        type="date"
-        value={dateInputValue}
+    <div className={`inline-flex items-center ${className}`}>
+      <DatePicker
+        value={dayjs(selectedDate)}
         onChange={handleDateChange}
-        className="absolute inset-0 cursor-pointer opacity-0"
-        aria-label="Select appointment date"
+        format="DD MMM YYYY"
+        suffixIcon={<CalendarOutlined style={{ color: '#6b7280' }} />}
+        allowClear={false}
+        className="custom-date-picker"
+        style={{
+          borderRadius: '0.5rem',
+          borderColor: '#e5e7eb',
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          color: '#111827',
+        }}
+        popupClassName="appointment-date-picker-dropdown"
       />
-      <div className="pointer-events-none flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5">
-        <span className="text-sm font-semibold text-gray-900">{formatDate(selectedDate)}</span>
-        <CalendarIcon className="h-4 w-4 text-gray-500" size={16} />
-      </div>
+      <style jsx global>{`
+        .custom-date-picker .ant-picker-input > input {
+          font-weight: 600;
+          font-size: 0.875rem;
+          color: #111827;
+        }
+        .custom-date-picker:hover {
+          border-color: #3b82f6;
+        }
+        .appointment-date-picker-dropdown .ant-picker-cell-selected .ant-picker-cell-inner {
+          background: #3b82f6;
+        }
+        .appointment-date-picker-dropdown .ant-picker-today-btn {
+          color: #3b82f6;
+        }
+      `}</style>
     </div>
   );
 };

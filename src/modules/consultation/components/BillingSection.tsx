@@ -85,9 +85,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
 
           {/* Consultation Fee */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Consultation Fee
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Consultation Fee</label>
             <Field name="billing.consultationFee">
               {({ field }: FieldProps) => (
                 <InputNumber
@@ -106,9 +104,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
 
           {/* Other Amount */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Other Charges
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Other Charges</label>
             <Field name="billing.otherAmount">
               {({ field }: FieldProps) => (
                 <InputNumber
@@ -130,9 +126,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
 
           {/* Discount */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Discount
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Discount</label>
             <Field name="billing.discount">
               {({ field }: FieldProps) => (
                 <InputNumber
@@ -245,12 +239,16 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
               <p className="text-xs text-blue-900 font-medium mb-1">Calculation Formula:</p>
               <p className="text-xs text-blue-800">
-                Total = (Procedures + Consultation Fee + Other) {formik.values.billing.applyGst ? '+ GST (5%)' : ''} - Discount
+                Total = (Procedures + Consultation Fee + Other){' '}
+                {formik.values.billing.applyGst ? '+ GST (5%)' : ''} - Discount
               </p>
               <p className="text-xs text-blue-700 mt-1">
-                = ({procedureAmount.toFixed(2)} + {(formik.values.billing.consultationFee || 0).toFixed(2)} + {(formik.values.billing.otherAmount || 0).toFixed(2)})
+                = ({procedureAmount.toFixed(2)} +{' '}
+                {(formik.values.billing.consultationFee || 0).toFixed(2)} +{' '}
+                {(formik.values.billing.otherAmount || 0).toFixed(2)})
                 {formik.values.billing.applyGst && ` + ${tax.toFixed(2)}`}
-                {(formik.values.billing.discount || 0) > 0 && ` - ${(formik.values.billing.discount || 0).toFixed(2)}`}
+                {(formik.values.billing.discount || 0) > 0 &&
+                  ` - ${(formik.values.billing.discount || 0).toFixed(2)}`}
               </p>
             </div>
           </Card>
@@ -259,20 +257,21 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
           <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded">
             <h4 className="text-sm font-semibold text-gray-900 mb-2">Payment Records</h4>
             <p className="text-xs text-gray-600">
-              Payment tracking functionality can be added here (amount paid, balance due, payment method)
+              Payment tracking functionality can be added here (amount paid, balance due, payment
+              method)
             </p>
           </div>
         </div>
       </div>
 
       {/* Info Box */}
-      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      {/* <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
         <p className="text-sm text-yellow-900">
           <strong>💡 Note:</strong> All amounts are auto-calculated in real-time. The procedure amount
           is automatically summed from the Procedures section. Adjust consultation fee, other charges,
           discount, and GST as needed.
         </p>
-      </div>
+      </div> */}
     </div>
   );
 };

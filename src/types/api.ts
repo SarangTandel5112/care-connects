@@ -2,14 +2,14 @@ export interface ApiError {
   message: string;
   status: number;
   code?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   response?: {
-    data?: any;
+    data?: unknown;
     status?: number;
   };
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T;
   message?: string;
   success: boolean;

@@ -39,6 +39,16 @@ import {
   useDeleteMedicineTemplate,
   useDeleteMedicinePackageTemplate,
 } from '@/modules/templates/hooks/useTemplates';
+import type {
+  AnyTemplate,
+  TemplateType,
+  CreateAdviceTemplate,
+  CreateComplaintTemplate,
+  CreateExaminationTemplate,
+  CreateProcedureTemplate,
+  CreateMedicineTemplate,
+  CreateMedicinePackageTemplate,
+} from '@/modules/templates/types/template.types';
 
 // Template types
 const TEMPLATE_TYPES = [
@@ -59,11 +69,11 @@ export default function TemplateTypePage() {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<AnyTemplate | null>(null);
 
   // Delete confirmation modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [templateToDelete, setTemplateToDelete] = useState<any>(null);
+  const [templateToDelete, setTemplateToDelete] = useState<AnyTemplate | null>(null);
 
   const handleAddTemplate = () => {
     console.log('handleAddTemplate called', { currentType, paramsType: params.type });
@@ -125,8 +135,8 @@ export default function TemplateTypePage() {
     deleteMedicinePackage.isPending;
 
   // Clean up empty/undefined values from form data
-  const cleanFormData = (data: any) => {
-    const cleaned: any = {};
+  const cleanFormData = (data: Record<string, unknown>) => {
+    const cleaned: Record<string, unknown> = {};
     // Fields that should be converted to numbers if they have values
     const numericFields = ['duration', 'morning', 'noon', 'evening', 'unitCost'];
 
@@ -146,8 +156,8 @@ export default function TemplateTypePage() {
       // Special handling for medicine packages - convert medicine objects to IDs
       if (key === 'medicines' && Array.isArray(value) && value.length > 0) {
         // If medicines are objects, extract just the IDs
-        if (typeof value[0] === 'object' && value[0].id) {
-          cleaned[key] = value.map((medicine: any) => medicine.id);
+        if (typeof value[0] === 'object' && value[0] !== null && 'id' in value[0]) {
+          cleaned[key] = value.map((medicine: { id: string }) => medicine.id);
         } else {
           // If medicines are already IDs, keep them as is
           cleaned[key] = value;
@@ -163,7 +173,7 @@ export default function TemplateTypePage() {
     return cleaned;
   };
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: Record<string, unknown>) => {
     console.log('Parent handleSave called', { data, modalMode, paramsType: params.type });
     try {
       // Clean form data to remove empty values
@@ -174,22 +184,22 @@ export default function TemplateTypePage() {
         // Create new template
         switch (params.type) {
           case 'advice':
-            await createAdvice.mutateAsync(cleanedData);
+            await createAdvice.mutateAsync(cleanedData as unknown as CreateAdviceTemplate);
             break;
           case 'complaint':
-            await createComplaint.mutateAsync(cleanedData);
+            await createComplaint.mutateAsync(cleanedData as unknown as CreateComplaintTemplate);
             break;
           case 'examination':
-            await createExamination.mutateAsync(cleanedData);
+            await createExamination.mutateAsync(cleanedData as unknown as CreateExaminationTemplate);
             break;
           case 'procedure':
-            await createProcedure.mutateAsync(cleanedData);
+            await createProcedure.mutateAsync(cleanedData as unknown as CreateProcedureTemplate);
             break;
           case 'medicine':
-            await createMedicine.mutateAsync(cleanedData);
+            await createMedicine.mutateAsync(cleanedData as unknown as CreateMedicineTemplate);
             break;
           case 'medicine-package':
-            await createMedicinePackage.mutateAsync(cleanedData);
+            await createMedicinePackage.mutateAsync(cleanedData as unknown as CreateMedicinePackageTemplate);
             break;
           default:
             throw new Error(`Unsupported template type: ${params.type}`);
@@ -200,22 +210,22 @@ export default function TemplateTypePage() {
 
         switch (params.type) {
           case 'advice':
-            await updateAdvice.mutateAsync({ data: updateData, id: selectedTemplate.id });
+            await updateAdvice.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
             break;
           case 'complaint':
-            await updateComplaint.mutateAsync({ data: updateData, id: selectedTemplate.id });
+            await updateComplaint.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
             break;
           case 'examination':
-            await updateExamination.mutateAsync({ data: updateData, id: selectedTemplate.id });
+            await updateExamination.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
             break;
           case 'procedure':
-            await updateProcedure.mutateAsync({ data: updateData, id: selectedTemplate.id });
+            await updateProcedure.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
             break;
           case 'medicine':
-            await updateMedicine.mutateAsync({ data: updateData, id: selectedTemplate.id });
+            await updateMedicine.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
             break;
           case 'medicine-package':
-            await updateMedicinePackage.mutateAsync({ data: updateData, id: selectedTemplate.id });
+            await updateMedicinePackage.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
             break;
           default:
             throw new Error(`Unsupported template type: ${params.type}`);
@@ -230,19 +240,19 @@ export default function TemplateTypePage() {
     }
   };
 
-  const handleEditTemplate = (template: any) => {
+  const handleEditTemplate = (template: AnyTemplate) => {
     setSelectedTemplate(template);
     setModalMode('edit');
     setIsModalOpen(true);
   };
 
-  const handleViewTemplate = (template: any) => {
+  const handleViewTemplate = (template: AnyTemplate) => {
     setSelectedTemplate(template);
     setModalMode('view');
     setIsModalOpen(true);
   };
 
-  const handleDeleteTemplate = (template: any) => {
+  const handleDeleteTemplate = (template: AnyTemplate) => {
     setTemplateToDelete(template);
     setIsDeleteModalOpen(true);
   };
@@ -425,8 +435,8 @@ export default function TemplateTypePage() {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         mode={modalMode}
-        templateType={currentType as any}
-        templateData={selectedTemplate}
+        templateType={currentType as TemplateType}
+        templateData={selectedTemplate ?? undefined}
         onSave={handleSave}
         isLoading={isCreating || isUpdating}
       />

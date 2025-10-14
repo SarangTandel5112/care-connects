@@ -192,7 +192,7 @@ describe('AnimatedBackground Component', () => {
 
     it('does not accept any props', () => {
       // Component should not break even if props are passed
-      const { container } = render(<AnimatedBackground {...{} as any} />);
+      const { container } = render(<AnimatedBackground />);
       expect(container.firstChild).toBeInTheDocument();
     });
   });

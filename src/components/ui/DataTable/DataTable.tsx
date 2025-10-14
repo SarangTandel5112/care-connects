@@ -5,12 +5,12 @@ interface Column<T> {
   key: keyof T | string;
   label: string;
   sortable?: boolean;
-  render?: (value: any, row: T, index: number) => React.ReactNode;
+  render?: (value: unknown, row: T, index: number) => React.ReactNode;
   width?: string;
   align?: 'left' | 'center' | 'right';
 }
 
-interface DataTableProps<T extends Record<string, any>> {
+interface DataTableProps<T extends Record<string, unknown>> {
   data: T[];
   columns: Column<T>[];
   isLoading?: boolean;
@@ -23,7 +23,7 @@ interface DataTableProps<T extends Record<string, any>> {
   hoverable?: boolean;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   isLoading = false,
@@ -53,9 +53,14 @@ export function DataTable<T extends Record<string, any>>({
     }
   };
 
-  const getValue = (row: T, key: keyof T | string): any => {
+  const getValue = (row: T, key: keyof T | string): unknown => {
     if (typeof key === 'string' && key.includes('.')) {
-      return key.split('.').reduce((obj, k) => obj?.[k], row);
+      return key.split('.').reduce((obj: unknown, k: string) => {
+        if (obj && typeof obj === 'object' && k in obj) {
+          return (obj as Record<string, unknown>)[k];
+        }
+        return undefined;
+      }, row);
     }
     return row[key as keyof T];
   };

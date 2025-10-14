@@ -48,7 +48,7 @@ export const PatientSelectionSection: React.FC<PatientSelectionSectionProps> = (
   }, [appointments, formik.values.patientId]);
 
   // Format appointment display
-  const formatAppointmentLabel = (appointment: any) => {
+  const formatAppointmentLabel = (appointment: { appointmentStartTime: string; status: string }) => {
     const date = new Date(appointment.appointmentStartTime);
     const dateStr = date.toLocaleDateString('en-US', {
       month: 'short',

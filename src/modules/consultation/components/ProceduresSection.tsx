@@ -7,7 +7,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { FormikProps } from 'formik';
 import { Button, Table, Input, InputNumber, Select } from 'antd';
-import { PlusOutlined, DeleteOutlined, MedicineBoxOutlined, ClearOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  MedicineBoxOutlined,
+  ClearOutlined,
+} from '@ant-design/icons';
 import { ConsultationFormValues, CreateProcedure } from '../types/consultation.types';
 import { useProcedureTemplates } from '@/modules/templates/hooks/useTemplates';
 import type { ProcedureTemplate } from '@/modules/templates/types/template.types';
@@ -148,23 +153,24 @@ export const ProceduresSection: React.FC<ProceduresSectionProps> = ({ formik }) 
       key: 'subtotal',
       width: '12%',
       align: 'right' as const,
-      render: (_: any, record: CreateProcedure) => `₹${calculateSubtotal(record).toFixed(2)}`,
+      render: (_: unknown, record: CreateProcedure) => `₹${calculateSubtotal(record).toFixed(2)}`,
     },
     {
       title: 'Actions',
       key: 'actions',
       width: '14%',
       align: 'center' as const,
-      render: (_: any, record: CreateProcedure, index: number) => (
+      render: (_: unknown, __: CreateProcedure, index: number) => (
         <div className="flex gap-2 justify-center">
-          <Button
-            size="small"
-            onClick={() => handleEdit(index)}
-            disabled={editingIndex === index}
-          >
+          <Button size="small" onClick={() => handleEdit(index)} disabled={editingIndex === index}>
             Edit
           </Button>
-          <Button size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(index)} />
+          <Button
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(index)}
+          />
         </div>
       ),
     },
@@ -207,16 +213,14 @@ export const ProceduresSection: React.FC<ProceduresSectionProps> = ({ formik }) 
               </label>
               <Input
                 value={currentProcedure.name}
-                onChange={(e) =>
-                  setCurrentProcedure({ ...currentProcedure, name: e.target.value })
-                }
+                onChange={(e) => setCurrentProcedure({ ...currentProcedure, name: e.target.value })}
                 placeholder="Enter procedure name"
                 maxLength={100}
               />
             </div>
 
-            {/* Quantity and Unit Cost */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Quantity, Unit Cost, Discount, and Teeth Numbers - All in One Line */}
+            <div className="grid grid-cols-4 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
                 <InputNumber
@@ -242,14 +246,8 @@ export const ProceduresSection: React.FC<ProceduresSectionProps> = ({ formik }) 
                   className="w-full"
                 />
               </div>
-            </div>
-
-            {/* Discount and Teeth Numbers */}
-            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Discount (₹)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Discount (₹)</label>
                 <InputNumber
                   value={currentProcedure.discount}
                   onChange={(value) =>
@@ -273,7 +271,7 @@ export const ProceduresSection: React.FC<ProceduresSectionProps> = ({ formik }) 
                       .filter((num) => !isNaN(num) && num >= 1 && num <= 32);
                     setCurrentProcedure({ ...currentProcedure, teethNumbers });
                   }}
-                  placeholder="Select from examined teeth or type custom"
+                  placeholder="Select teeth"
                   className="w-full"
                   tokenSeparators={[',']}
                   maxTagCount="responsive"
@@ -284,12 +282,14 @@ export const ProceduresSection: React.FC<ProceduresSectionProps> = ({ formik }) 
                     </Option>
                   ))}
                 </Select>
-                <p className="text-xs text-gray-500 mt-1">
-                  {examinedTeethNumbers.length > 0
-                    ? 'Select from examined teeth or type custom numbers (1-32)'
-                    : 'Type tooth numbers (1-32), separated by comma'}
-                </p>
               </div>
+            </div>
+
+            {/* Helper text for teeth numbers */}
+            <div className="text-xs text-gray-500">
+              {examinedTeethNumbers.length > 0
+                ? 'Select from examined teeth or type custom numbers (1-32)'
+                : 'Type tooth numbers (1-32), separated by comma'}
             </div>
 
             {/* Note */}
@@ -299,9 +299,7 @@ export const ProceduresSection: React.FC<ProceduresSectionProps> = ({ formik }) 
               </label>
               <TextArea
                 value={currentProcedure.note}
-                onChange={(e) =>
-                  setCurrentProcedure({ ...currentProcedure, note: e.target.value })
-                }
+                onChange={(e) => setCurrentProcedure({ ...currentProcedure, note: e.target.value })}
                 placeholder="Add any additional notes"
                 rows={2}
               />
@@ -331,7 +329,9 @@ export const ProceduresSection: React.FC<ProceduresSectionProps> = ({ formik }) 
                 icon={<PlusOutlined />}
                 onClick={handleAddOrUpdate}
                 disabled={
-                  !currentProcedure.name || !currentProcedure.unitCost || currentProcedure.quantity < 1
+                  !currentProcedure.name ||
+                  !currentProcedure.unitCost ||
+                  currentProcedure.quantity < 1
                 }
               >
                 {editingIndex !== null ? 'Update Procedure' : 'Add Procedure'}

@@ -7,10 +7,12 @@
 
 import React from 'react';
 import { Button } from '@/components/ui';
-import { UserIcon, UserAddIcon, PlusIcon, EditIcon } from '@/components/ui/icons';
+import { UserIcon } from '@/components/ui/icons';
 import { LoginOutlined, UserAddOutlined, EditOutlined } from '@ant-design/icons';
+import { AppointmentStatus } from '@/modules/appointment/types/appointment.types';
 
 interface Patient {
+  id: string;
   firstName: string;
   lastName: string;
   mobile: string;
@@ -35,6 +37,18 @@ interface AppointmentCardProps {
    */
   appointment: Appointment;
   /**
+   * Callback for Check In action
+   */
+  onCheckIn?: (appointmentId: string) => void;
+  /**
+   * Callback for Consultation action
+   */
+  onConsultation?: (appointmentId: string, patientId: string) => void;
+  /**
+   * Show status badge on the card
+   */
+  showStatusBadge?: boolean;
+  /**
    * Additional CSS classes
    */
   className?: string;
@@ -46,6 +60,9 @@ interface AppointmentCardProps {
  */
 export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   appointment,
+  onCheckIn,
+  onConsultation,
+  showStatusBadge = false,
   className = '',
 }) => {
   const { patient, doctor, treatment, status } = appointment;
@@ -55,18 +72,38 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   };
 
   const handleCheckIn = () => {
-    // TODO: Implement check-in functionality
-    console.log('Check in:', appointment.id);
+    if (onCheckIn && status === AppointmentStatus.SCHEDULED) {
+      onCheckIn(appointment.id);
+    }
   };
 
   const handleStartConsultation = () => {
-    // TODO: Implement start consultation functionality
-    console.log('Start consultation:', appointment.id);
+    if (onConsultation && status === AppointmentStatus.CHECK_IN) {
+      onConsultation(appointment.id, patient.id);
+    }
   };
 
   const handleEdit = () => {
     // TODO: Implement edit functionality
     console.log('Edit appointment:', appointment.id);
+  };
+
+  // Determine button states using enum
+  const isCheckInDisabled = status !== AppointmentStatus.SCHEDULED;
+  const isConsultationDisabled = status !== AppointmentStatus.CHECK_IN;
+
+  // Get status badge color
+  const getStatusBadgeColor = () => {
+    switch (status) {
+      case AppointmentStatus.CHECK_IN:
+        return 'bg-orange-600';
+      case AppointmentStatus.CONSULTATION:
+        return 'bg-green-600';
+      case AppointmentStatus.COMPLETED:
+        return 'bg-emerald-600';
+      default:
+        return 'bg-blue-600';
+    }
   };
 
   return (
@@ -110,7 +147,12 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
                 onClick={handleCheckIn}
                 variant="ghost"
                 size="sm"
-                className="w-8 h-8 p-0 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg border border-gray-300 hover:border-emerald-300 transition-all duration-200 hover:scale-105 flex items-center justify-center"
+                disabled={isCheckInDisabled}
+                className={`w-8 h-8 p-0 rounded-lg border transition-all duration-200 flex items-center justify-center ${
+                  isCheckInDisabled
+                    ? 'text-gray-400 bg-gray-100 border-gray-200 cursor-not-allowed'
+                    : 'text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 border-gray-300 hover:border-emerald-300 hover:scale-105'
+                }`}
                 ariaLabel="Check in patient"
                 icon={<LoginOutlined style={{ fontSize: '16px' }} />}
               >
@@ -126,7 +168,12 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
                 onClick={handleStartConsultation}
                 variant="ghost"
                 size="sm"
-                className="w-8 h-8 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg border border-gray-300 hover:border-blue-300 transition-all duration-200 hover:scale-105 flex items-center justify-center"
+                disabled={isConsultationDisabled}
+                className={`w-8 h-8 p-0 rounded-lg border transition-all duration-200 flex items-center justify-center ${
+                  isConsultationDisabled
+                    ? 'text-gray-400 bg-gray-100 border-gray-200 cursor-not-allowed'
+                    : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700 border-gray-300 hover:border-blue-300 hover:scale-105'
+                }`}
                 ariaLabel="Start consultation"
                 icon={<UserAddOutlined style={{ fontSize: '16px' }} />}
               >
@@ -160,10 +207,10 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
         <div className="mt-2 text-center text-xs text-gray-500">{appointment.time}</div>
       </div>
 
-      {/* Completed Status Badge */}
-      {status === 'Completed' && (
-        <div className="bg-emerald-600 py-1 text-center text-xs font-medium text-white">
-          Completed
+      {/* Status Badge */}
+      {showStatusBadge && (
+        <div className={`${getStatusBadgeColor()} py-1 text-center text-xs font-medium text-white`}>
+          {status}
         </div>
       )}
     </div>

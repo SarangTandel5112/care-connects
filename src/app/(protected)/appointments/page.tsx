@@ -58,17 +58,16 @@ export default function AppointmentsPage() {
     setIsModalOpen(true);
   };
 
-  // These functions are not used in the current implementation
-  // const handleEditAppointment = (appointment: Appointment) => {
-  //   setSelectedAppointment(appointment);
-  //   setModalMode('edit');
-  //   setIsModalOpen(true);
-  // };
+  const handleEditAppointment = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setModalMode('edit');
+    setIsModalOpen(true);
+  };
 
-  // const handleDeleteAppointment = (appointment: Appointment) => {
-  //   setAppointmentToDelete(appointment);
-  //   setIsDeleteModalOpen(true);
-  // };
+  const handleDeleteAppointment = (appointment: Appointment) => {
+    setAppointmentToDelete(appointment);
+    setIsDeleteModalOpen(true);
+  };
 
   const handleSave = async (data: CreateAppointment | UpdateAppointment) => {
     try {
@@ -174,7 +173,11 @@ export default function AppointmentsPage() {
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
         title="Delete Appointment"
-        message="Are you sure you want to delete this appointment? This action cannot be undone."
+        message={
+          appointmentToDelete
+            ? `Are you sure you want to delete the appointment for ${appointmentToDelete.patient?.firstName} ${appointmentToDelete.patient?.lastName} with Dr. ${appointmentToDelete.doctor?.firstName} ${appointmentToDelete.doctor?.lastName}? This action cannot be undone.`
+            : 'Are you sure you want to delete this appointment? This action cannot be undone.'
+        }
         confirmText="Delete"
         cancelText="Cancel"
         variant="danger"

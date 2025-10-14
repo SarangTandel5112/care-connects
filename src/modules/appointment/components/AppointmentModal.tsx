@@ -2,7 +2,13 @@ import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Formik, Form, Field, ErrorMessage, FieldProps } from 'formik';
 import { Button, Modal } from '@/components/ui';
 import { Input } from '@/components/ui';
-import { CalendarOutlined, UserOutlined, ClockCircleOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {
+  CalendarOutlined,
+  UserOutlined,
+  ClockCircleOutlined,
+  EditOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
 import * as Yup from 'yup';
 import {
   Appointment,
@@ -161,337 +167,369 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
     }
   }, [mode]);
 
-  const handleSubmit = useCallback((values: CreateAppointment | UpdateAppointment) => {
-    // Clean up the data before submitting
-    const cleanedValues = Object.fromEntries(
-      Object.entries(values).map(([key, value]) => [
-        key,
-        value === null || value === undefined || value === '' ? undefined : value,
-      ])
+  const handleSubmit = useCallback(
+    (values: CreateAppointment | UpdateAppointment) => {
+      // Clean up the data before submitting
+      const cleanedValues = Object.fromEntries(
+        Object.entries(values).map(([key, value]) => [
+          key,
+          value === null || value === undefined || value === '' ? undefined : value,
+        ])
+      );
+
+      onSave?.(cleanedValues as CreateAppointment | UpdateAppointment);
+    },
+    [onSave]
+  );
+
+  const renderFooter = useCallback(() => {
+    if (mode === 'view') {
+      return (
+        <div className="flex justify-end space-x-2">
+          <Button variant="secondary" onClick={onClose}>
+            Close
+          </Button>
+          {onDelete && (
+            <Button variant="danger" onClick={onDelete} icon={<DeleteOutlined />}>
+              Delete
+            </Button>
+          )}
+          {onEdit && (
+            <Button onClick={onEdit} icon={<EditOutlined />}>
+              Edit
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex justify-end space-x-2">
+        <Button variant="secondary" onClick={onClose} disabled={isLoading}>
+          Cancel
+        </Button>
+        <Button type="submit" form="appointment-form" loading={isLoading} disabled={isLoading}>
+          {mode === 'create' ? 'Schedule Appointment' : 'Update Appointment'}
+        </Button>
+      </div>
     );
+  }, [mode, onClose, onDelete, onEdit, isLoading]);
 
-    onSave?.(cleanedValues as CreateAppointment | UpdateAppointment);
-  }, [onSave]);
+  const renderForm = useCallback(
+    () => (
+      <Formik
+        initialValues={initialValues}
+        validationSchema={getValidationSchema(mode)}
+        onSubmit={handleSubmit}
+        enableReinitialize
+      >
+        {({ setFieldValue, setFieldTouched, errors, touched }) => (
+          <Form id="appointment-form" className="space-y-6">
+            {/* Appointment Details Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
+                <CalendarOutlined className="mr-2 text-blue-600" />
+                Appointment Details
+              </h3>
 
-  const renderForm = useCallback(() => (
-    <Formik
-      initialValues={initialValues}
-      validationSchema={getValidationSchema(mode)}
-      onSubmit={handleSubmit}
-      enableReinitialize
-    >
-      {({ setFieldValue, setFieldTouched, errors, touched }) => (
-        <Form className="space-y-6">
-          {/* Appointment Details Section */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <CalendarOutlined className="mr-2 text-blue-600" />
-              Appointment Details
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status *</label>
-                <Field name="status">
-                  {({ field }: FieldProps) => (
-                    <select
-                      {...field}
-                      disabled={mode === 'view'}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                    >
-                      {Object.values(AppointmentStatus).map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </Field>
-                <ErrorMessage name="status" component="p" className="text-red-500 text-xs mt-1" />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Treatment</label>
-                <Field name="treatment">
-                  {({ field }: FieldProps) => (
-                    <Input
-                      {...field}
-                      placeholder="Enter treatment details"
-                      disabled={mode === 'view'}
-                    />
-                  )}
-                </Field>
-                <ErrorMessage
-                  name="treatment"
-                  component="p"
-                  className="text-red-500 text-xs mt-1"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Time Information Section */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <ClockCircleOutlined className="mr-2 text-green-600" />
-              Time Information
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
-                <Field name="appointmentStartTime">
-                  {({ field }: FieldProps) => (
-                    <Input
-                      {...field}
-                      type="datetime-local"
-                      value={formatDateTimeLocal(field.value)}
-                      onChange={(e) =>
-                        setFieldValue('appointmentStartTime', new Date(e.target.value))
-                      }
-                      disabled={mode === 'view'}
-                      className={
-                        errors.appointmentStartTime && touched.appointmentStartTime
-                          ? 'border-red-500'
-                          : ''
-                      }
-                    />
-                  )}
-                </Field>
-                <ErrorMessage
-                  name="appointmentStartTime"
-                  component="p"
-                  className="text-red-500 text-xs mt-1"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Time *</label>
-                <Field name="appointmentEndTime">
-                  {({ field }: FieldProps) => (
-                    <Input
-                      {...field}
-                      type="datetime-local"
-                      value={formatDateTimeLocal(field.value)}
-                      onChange={(e) =>
-                        setFieldValue('appointmentEndTime', new Date(e.target.value))
-                      }
-                      disabled={mode === 'view'}
-                      className={
-                        errors.appointmentEndTime && touched.appointmentEndTime
-                          ? 'border-red-500'
-                          : ''
-                      }
-                    />
-                  )}
-                </Field>
-                <ErrorMessage
-                  name="appointmentEndTime"
-                  component="p"
-                  className="text-red-500 text-xs mt-1"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Participants Section */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <UserOutlined className="mr-2 text-purple-600" />
-              Participants
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Patient *</label>
-                <div className="relative patient-dropdown-container">
-                  <Input
-                    value={
-                      selectedPatient
-                        ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
-                        : patientSearch
-                    }
-                    onChange={(e) => {
-                      setPatientSearch(e.target.value);
-                      setIsPatientDropdownOpen(true);
-                    }}
-                    onFocus={() => setIsPatientDropdownOpen(true)}
-                    placeholder="Search for patient..."
-                    disabled={mode === 'view'}
-                    className={errors.patientId && touched.patientId ? 'border-red-500' : ''}
-                  />
-
-                  {isPatientDropdownOpen && mode !== 'view' && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60">
-                      <div className="max-h-60 overflow-y-auto">
-                        {isLoadingPatients ? (
-                          <div className="px-3 py-2 text-sm text-gray-500">Loading patients...</div>
-                        ) : patients.length > 0 ? (
-                          patients.map((patient) => (
-                            <div
-                              key={patient.id}
-                              onClick={() => {
-                                setSelectedPatient(patient);
-                                setPatientSearch('');
-                                setIsPatientDropdownOpen(false);
-                                setFieldValue('patientId', patient.id);
-                                setFieldTouched('patientId', true, false);
-                              }}
-                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                            >
-                              <div className="flex justify-between items-center">
-                                <div>
-                                  <p className="text-sm font-medium text-gray-900">
-                                    {patient.firstName} {patient.lastName}
-                                  </p>
-                                  <p className="text-xs text-gray-500">{patient.mobile}</p>
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="px-3 py-2 text-sm text-gray-500">
-                            {patientSearch
-                              ? 'No patients found'
-                              : 'Start typing to search patients'}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                  <Field name="status">
+                    {({ field }: FieldProps) => (
+                      <select
+                        {...field}
+                        disabled={mode === 'view'}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                      >
+                        {Object.values(AppointmentStatus).map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </Field>
+                  <ErrorMessage name="status" component="p" className="text-red-500 text-xs mt-1" />
                 </div>
-                <ErrorMessage
-                  name="patientId"
-                  component="p"
-                  className="text-red-500 text-xs mt-1"
-                />
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Doctor *</label>
-                <div className="relative doctor-dropdown-container">
-                  <Input
-                    value={
-                      selectedDoctor
-                        ? `${selectedDoctor.firstName} ${selectedDoctor.lastName}`
-                        : doctorSearch
-                    }
-                    onChange={(e) => {
-                      setDoctorSearch(e.target.value);
-                      setIsDoctorDropdownOpen(true);
-                    }}
-                    onFocus={() => setIsDoctorDropdownOpen(true)}
-                    placeholder="Search for doctor..."
-                    disabled={mode === 'view'}
-                    className={errors.doctorId && touched.doctorId ? 'border-red-500' : ''}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Treatment</label>
+                  <Field name="treatment">
+                    {({ field }: FieldProps) => (
+                      <Input
+                        {...field}
+                        placeholder="Enter treatment details"
+                        disabled={mode === 'view'}
+                      />
+                    )}
+                  </Field>
+                  <ErrorMessage
+                    name="treatment"
+                    component="p"
+                    className="text-red-500 text-xs mt-1"
                   />
-
-                  {isDoctorDropdownOpen && mode !== 'view' && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60">
-                      <div className="max-h-60 overflow-y-auto">
-                        {isLoadingDoctors ? (
-                          <div className="px-3 py-2 text-sm text-gray-500">Loading doctors...</div>
-                        ) : doctors.length > 0 ? (
-                          doctors.map((doctor) => (
-                            <div
-                              key={doctor.id}
-                              onClick={() => {
-                                setSelectedDoctor(doctor);
-                                setDoctorSearch('');
-                                setIsDoctorDropdownOpen(false);
-                                setFieldValue('doctorId', doctor.id);
-                                setFieldTouched('doctorId', true, false);
-                              }}
-                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                            >
-                              <div className="flex justify-between items-center">
-                                <div>
-                                  <p className="text-sm font-medium text-gray-900">
-                                    Dr. {doctor.firstName} {doctor.lastName}
-                                  </p>
-                                  <p className="text-xs text-gray-500">{doctor.email}</p>
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="px-3 py-2 text-sm text-gray-500">No doctors found</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
-                <ErrorMessage name="doctorId" component="p" className="text-red-500 text-xs mt-1" />
               </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-gray-200">
-            {mode === 'view' ? (
-              <>
-                <Button variant="secondary" onClick={onClose}>
-                  Close
-                </Button>
-                {onDelete && (
-                  <Button
-                    variant="danger"
-                    onClick={onDelete}
-                    icon={<DeleteOutlined />}
-                  >
-                    Delete
-                  </Button>
-                )}
-                {onEdit && (
-                  <Button onClick={onEdit} icon={<EditOutlined />}>
-                    Edit
-                  </Button>
-                )}
-              </>
-            ) : (
-              <>
-                <Button variant="secondary" onClick={onClose} disabled={isLoading}>
-                  Cancel
-                </Button>
-                <Button type="submit" loading={isLoading} disabled={isLoading}>
-                  {mode === 'create' ? 'Schedule Appointment' : 'Update Appointment'}
-                </Button>
-              </>
+            {/* Time Information Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
+                <ClockCircleOutlined className="mr-2 text-green-600" />
+                Time Information
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Time *
+                  </label>
+                  <Field name="appointmentStartTime">
+                    {({ field }: FieldProps) => (
+                      <Input
+                        {...field}
+                        type="datetime-local"
+                        value={formatDateTimeLocal(field.value)}
+                        onChange={(e) =>
+                          setFieldValue('appointmentStartTime', new Date(e.target.value))
+                        }
+                        disabled={mode === 'view'}
+                        className={
+                          errors.appointmentStartTime && touched.appointmentStartTime
+                            ? 'border-red-500'
+                            : ''
+                        }
+                      />
+                    )}
+                  </Field>
+                  <ErrorMessage
+                    name="appointmentStartTime"
+                    component="p"
+                    className="text-red-500 text-xs mt-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">End Time *</label>
+                  <Field name="appointmentEndTime">
+                    {({ field }: FieldProps) => (
+                      <Input
+                        {...field}
+                        type="datetime-local"
+                        value={formatDateTimeLocal(field.value)}
+                        onChange={(e) =>
+                          setFieldValue('appointmentEndTime', new Date(e.target.value))
+                        }
+                        disabled={mode === 'view'}
+                        className={
+                          errors.appointmentEndTime && touched.appointmentEndTime
+                            ? 'border-red-500'
+                            : ''
+                        }
+                      />
+                    )}
+                  </Field>
+                  <ErrorMessage
+                    name="appointmentEndTime"
+                    component="p"
+                    className="text-red-500 text-xs mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Info Section (only in view mode) */}
+            {mode === 'view' && appointment && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
+                  <CalendarOutlined className="mr-2 text-gray-600" />
+                  Appointment Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Appointment ID
+                    </label>
+                    <div className="px-3 py-2 bg-gray-100 rounded-md text-sm text-gray-900">
+                      {appointment.id}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Created At
+                    </label>
+                    <div className="px-3 py-2 bg-gray-100 rounded-md text-sm text-gray-900">
+                      {new Date(appointment.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
-          </div>
-        </Form>
-      )}
-    </Formik>
-  ), [
-    initialValues,
-    mode,
-    handleSubmit,
-    onClose,
-    onDelete,
-    onEdit,
-    isLoading,
-    selectedPatient,
-    selectedDoctor,
-    patientSearch,
-    doctorSearch,
-    isPatientDropdownOpen,
-    isDoctorDropdownOpen,
-    patients,
-    isLoadingPatients,
-    doctors,
-    isLoadingDoctors,
-  ]);
+
+            {/* Participants Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
+                <UserOutlined className="mr-2 text-purple-600" />
+                Participants
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Patient *</label>
+                  <div className="relative patient-dropdown-container">
+                    <Input
+                      value={
+                        selectedPatient
+                          ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
+                          : patientSearch
+                      }
+                      onChange={(e) => {
+                        setPatientSearch(e.target.value);
+                        setIsPatientDropdownOpen(true);
+                      }}
+                      onFocus={() => setIsPatientDropdownOpen(true)}
+                      placeholder="Search for patient..."
+                      disabled={mode === 'view'}
+                      className={errors.patientId && touched.patientId ? 'border-red-500' : ''}
+                    />
+
+                    {isPatientDropdownOpen && mode !== 'view' && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60">
+                        <div className="max-h-60 overflow-y-auto">
+                          {isLoadingPatients ? (
+                            <div className="px-3 py-2 text-sm text-gray-500">
+                              Loading patients...
+                            </div>
+                          ) : patients.length > 0 ? (
+                            patients.map((patient) => (
+                              <div
+                                key={patient.id}
+                                onClick={() => {
+                                  setSelectedPatient(patient);
+                                  setPatientSearch('');
+                                  setIsPatientDropdownOpen(false);
+                                  setFieldValue('patientId', patient.id);
+                                  setFieldTouched('patientId', true, false);
+                                }}
+                                className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                              >
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900">
+                                      {patient.firstName} {patient.lastName}
+                                    </p>
+                                    <p className="text-xs text-gray-500">{patient.mobile}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-gray-500">
+                              {patientSearch
+                                ? 'No patients found'
+                                : 'Start typing to search patients'}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <ErrorMessage
+                    name="patientId"
+                    component="p"
+                    className="text-red-500 text-xs mt-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Doctor *</label>
+                  <div className="relative doctor-dropdown-container">
+                    <Input
+                      value={
+                        selectedDoctor
+                          ? `${selectedDoctor.firstName} ${selectedDoctor.lastName}`
+                          : doctorSearch
+                      }
+                      onChange={(e) => {
+                        setDoctorSearch(e.target.value);
+                        setIsDoctorDropdownOpen(true);
+                      }}
+                      onFocus={() => setIsDoctorDropdownOpen(true)}
+                      placeholder="Search for doctor..."
+                      disabled={mode === 'view'}
+                      className={errors.doctorId && touched.doctorId ? 'border-red-500' : ''}
+                    />
+
+                    {isDoctorDropdownOpen && mode !== 'view' && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60">
+                        <div className="max-h-60 overflow-y-auto">
+                          {isLoadingDoctors ? (
+                            <div className="px-3 py-2 text-sm text-gray-500">
+                              Loading doctors...
+                            </div>
+                          ) : doctors.length > 0 ? (
+                            doctors.map((doctor) => (
+                              <div
+                                key={doctor.id}
+                                onClick={() => {
+                                  setSelectedDoctor(doctor);
+                                  setDoctorSearch('');
+                                  setIsDoctorDropdownOpen(false);
+                                  setFieldValue('doctorId', doctor.id);
+                                  setFieldTouched('doctorId', true, false);
+                                }}
+                                className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                              >
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900">
+                                      Dr. {doctor.firstName} {doctor.lastName}
+                                    </p>
+                                    <p className="text-xs text-gray-500">{doctor.email}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-gray-500">No doctors found</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <ErrorMessage
+                    name="doctorId"
+                    component="p"
+                    className="text-red-500 text-xs mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+          </Form>
+        )}
+      </Formik>
+    ),
+    [
+      initialValues,
+      mode,
+      handleSubmit,
+      selectedPatient,
+      selectedDoctor,
+      patientSearch,
+      doctorSearch,
+      isPatientDropdownOpen,
+      isDoctorDropdownOpen,
+      patients,
+      isLoadingPatients,
+      doctors,
+      isLoadingDoctors,
+    ]
+  );
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={title}
-      size="lg"
-    >
-      <div className="max-h-[70vh] overflow-y-auto">
-        {renderForm()}
-      </div>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg" footer={renderFooter()}>
+      {renderForm()}
     </Modal>
   );
 };

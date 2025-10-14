@@ -153,14 +153,14 @@ export const PrescriptionsSection: React.FC<PrescriptionsSectionProps> = ({ form
       key: 'dosage',
       width: '12%',
       align: 'center' as const,
-      render: (_: any, record: CreatePrescription) =>
+      render: (_: unknown, record: CreatePrescription) =>
         formatDosage(record.morning, record.noon, record.evening),
     },
     {
       title: 'Duration',
       key: 'duration',
       width: '12%',
-      render: (_: any, record: CreatePrescription) =>
+      render: (_: unknown, record: CreatePrescription) =>
         record.duration && record.durationType
           ? `${record.duration} ${record.durationType}${record.duration > 1 ? 's' : ''}`
           : '-',
@@ -177,7 +177,7 @@ export const PrescriptionsSection: React.FC<PrescriptionsSectionProps> = ({ form
       key: 'actions',
       width: '10%',
       align: 'center' as const,
-      render: (_: any, record: CreatePrescription, index: number) => (
+      render: (_: unknown, __: CreatePrescription, index: number) => (
         <div className="flex gap-2 justify-center">
           <Button size="small" onClick={() => handleEdit(index)} disabled={editingIndex === index}>
             Edit

@@ -44,7 +44,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ redirectTo = '/dashboard' 
     },
   });
 
-  const errorMessage = extractErrorMessage(loginError);
+  const errorMessage = loginError ? extractErrorMessage(loginError) : undefined;
 
   return (
     <motion.div

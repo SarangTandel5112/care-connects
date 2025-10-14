@@ -14,12 +14,12 @@ describe('ErrorMessage Component', () => {
     });
 
     it('does not render when message is undefined', () => {
-      const { container } = render(<ErrorMessage message={undefined as any} />);
+      const { container } = render(<ErrorMessage message={undefined as unknown as string} />);
       expect(container.firstChild).toBeNull();
     });
 
     it('does not render when message is null', () => {
-      const { container } = render(<ErrorMessage message={null as any} />);
+      const { container } = render(<ErrorMessage message={null as unknown as string} />);
       expect(container.firstChild).toBeNull();
     });
   });

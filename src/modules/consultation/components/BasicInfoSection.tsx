@@ -190,12 +190,12 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ formik }) =>
       </div>
 
       {/* Info Box */}
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      {/* <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-900">
           <strong>💡 Tip:</strong> Use templates from the left panel to quickly add common findings.
           Templates will be appended to your current text.
         </p>
-      </div>
+      </div> */}
     </div>
   );
 };

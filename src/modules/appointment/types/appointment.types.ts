@@ -36,6 +36,32 @@ export interface Doctor {
   specialization?: string;
 }
 
+// API Response type for doctors (what the backend actually returns)
+export interface DoctorApiResponse {
+  id: string;
+  email: string;
+  fullName: string;
+  phoneNumber: string | null;
+}
+
+// API Response type for appointments (what the backend actually returns)
+export interface AppointmentApiResponse {
+  id: string;
+  status: AppointmentStatus;
+  appointmentStartTime: string | Date;
+  appointmentEndTime: string | Date;
+  treatment?: string;
+  patientId: string;
+  doctorId: string;
+  patient: Patient;
+  doctor: DoctorApiResponse; // Backend returns fullName
+  consultation?: {
+    id: string;
+  };
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 // ============================================
 // BASE INTERFACES
 // ============================================

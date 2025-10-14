@@ -6,6 +6,7 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  footer?: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showCloseButton?: boolean;
   closeOnOverlayClick?: boolean;
@@ -17,6 +18,7 @@ const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   children,
+  footer,
   size = 'md',
   showCloseButton = true,
   closeOnOverlayClick = true,
@@ -77,50 +79,78 @@ const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   const modalContent = (
-    <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-md"
-      onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={title ? 'modal-title' : undefined}
-    >
+    <>
+      <style jsx global>{`
+        .modal-content {
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e0 #f7fafc;
+        }
+        .modal-content::-webkit-scrollbar {
+          width: 6px;
+        }
+        .modal-content::-webkit-scrollbar-track {
+          background: #f7fafc;
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+          background: #cbd5e0;
+          border-radius: 3px;
+        }
+        .modal-content::-webkit-scrollbar-thumb:hover {
+          background: #a0aec0;
+        }
+      `}</style>
       <div
-        ref={modalRef}
-        className={`relative bg-white rounded-lg shadow-xl ${sizeClasses[size]} w-full max-h-[85vh] overflow-hidden flex flex-col`}
-        tabIndex={-1}
-        role="document"
+        className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-md"
+        onClick={handleOverlayClick}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? 'modal-title' : undefined}
       >
-        {/* Header */}
-        {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            {title && (
-              <h2 id="modal-title" className="text-2xl font-bold text-gray-900">
-                {title}
-              </h2>
-            )}
-            {showCloseButton && (
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
-                aria-label="Close modal"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            )}
-          </div>
-        )}
+        <div
+          ref={modalRef}
+          className={`relative bg-white rounded-lg shadow-xl ${sizeClasses[size]} w-full max-h-[90vh] overflow-hidden flex flex-col`}
+          tabIndex={-1}
+          role="document"
+        >
+          {/* Header - Sticky */}
+          {(title || showCloseButton) && (
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0 bg-white">
+              {title && (
+                <h2 id="modal-title" className="text-xl font-bold text-gray-900">
+                  {title}
+                </h2>
+              )}
+              {showCloseButton && (
+                <button
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
+                  aria-label="Close modal"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+          )}
 
-        {/* Content */}
-        <div className="p-6 flex-1 overflow-y-auto">{children}</div>
+          {/* Content - Scrollable */}
+          <div className="p-6 flex-1 overflow-y-auto min-h-0 max-h-[calc(90vh-120px)] modal-content">
+            {children}
+          </div>
+
+          {/* Footer - Sticky */}
+          {footer && (
+            <div className="p-6 border-t border-gray-200 flex-shrink-0 bg-white">{footer}</div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 
   // Use portal to render modal at document root

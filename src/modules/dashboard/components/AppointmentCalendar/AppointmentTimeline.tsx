@@ -8,11 +8,14 @@
 import React from 'react';
 import { AppointmentCard } from './AppointmentCard';
 import { Button } from '@/components/ui';
+import { AppointmentStatus } from '@/modules/appointment/types/appointment.types';
 
 interface Appointment {
   id: string;
   time: string;
+  startTime: string; // For grouping by time slot
   patient: {
+    id: string;
     firstName: string;
     lastName: string;
     mobile: string;
@@ -34,6 +37,18 @@ interface AppointmentTimelineProps {
    */
   activeStatus: string;
   /**
+   * Callback when adding appointment at a specific time
+   */
+  onAddAppointment?: (time: string) => void;
+  /**
+   * Callback for Check In action
+   */
+  onCheckIn?: (appointmentId: string) => void;
+  /**
+   * Callback for Consultation action
+   */
+  onConsultation?: (appointmentId: string, patientId: string) => void;
+  /**
    * Additional CSS classes
    */
   className?: string;
@@ -42,35 +57,55 @@ interface AppointmentTimelineProps {
 /**
  * Timeline view with time slots and appointment cards
  * Displays dotted timeline with appointments positioned at their scheduled times
+ * Shows gaps between appointments with Add buttons
  */
 export const AppointmentTimeline: React.FC<AppointmentTimelineProps> = ({
   appointments,
   activeStatus,
+  onAddAppointment,
+  onCheckIn,
+  onConsultation,
   className = '',
 }) => {
-  // Generate time slots (9 AM to 6 PM)
-  const timeSlots = [
-    '09:00 AM',
-    '10:00 AM',
-    '11:00 AM',
-    '12:00 PM',
-    '01:00 PM',
-    '02:00 PM',
-    '03:00 PM',
-    '04:00 PM',
-    '05:00 PM',
-    '06:00 PM',
-  ];
+  // Generate 30-minute time slots (9 AM to 6 PM)
+  const generateTimeSlots = () => {
+    const slots = [];
+    const startHour = 9;
+    const endHour = 18; // 6 PM in 24-hour format
 
-  // Filter appointments by active status
-  const filteredAppointments = appointments.filter(
-    (apt) => activeStatus === 'All' || apt.status === activeStatus
-  );
+    for (let hour = startHour; hour <= endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        if (hour === endHour && minute > 0) break; // Stop at 6:00 PM
 
-  // Group appointments by time slot
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+        const timeString = `${String(displayHour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${period}`;
+        slots.push(timeString);
+      }
+    }
+
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
+  // Filter appointments by active status using enum
+  const filteredAppointments = appointments.filter((apt) => {
+    if (activeStatus === 'All') return true;
+    // Map display status to enum values
+    const statusMap: Record<string, AppointmentStatus> = {
+      'Scheduled': AppointmentStatus.SCHEDULED,
+      'Check In': AppointmentStatus.CHECK_IN,
+      'Consultation': AppointmentStatus.CONSULTATION,
+      'Completed': AppointmentStatus.COMPLETED,
+    };
+    return apt.status === statusMap[activeStatus];
+  });
+
+  // Group appointments by start time slot
   const appointmentsByTime = filteredAppointments.reduce(
     (acc, appointment) => {
-      const time = appointment.time;
+      const time = appointment.startTime;
       if (!acc[time]) {
         acc[time] = [];
       }
@@ -81,8 +116,9 @@ export const AppointmentTimeline: React.FC<AppointmentTimelineProps> = ({
   );
 
   const handleAddAppointment = (time: string) => {
-    // TODO: Implement add appointment at specific time
-    console.log('Add appointment at:', time);
+    if (onAddAppointment) {
+      onAddAppointment(time);
+    }
   };
 
   return (
@@ -94,16 +130,22 @@ export const AppointmentTimeline: React.FC<AppointmentTimelineProps> = ({
       />
 
       {/* Time slots */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         {timeSlots.map((time) => {
           const appointmentsAtTime = appointmentsByTime[time] || [];
           const hasAppointments = appointmentsAtTime.length > 0;
+
+          // Check if this is an hourly slot (00 minutes) or half-hourly (30 minutes)
+          const isHourlySlot = time.includes(':00');
 
           return (
             <div key={time} className="relative pl-14">
               {/* Time indicator dot */}
               <div className="absolute left-12 top-0 z-10 -translate-x-1/2 transform">
-                <div className="h-3 w-3 rounded-full bg-blue-500" aria-hidden="true" />
+                <div
+                  className={`rounded-full bg-blue-500 ${isHourlySlot ? 'h-3 w-3' : 'h-2 w-2'}`}
+                  aria-hidden="true"
+                />
               </div>
 
               {/* Solid line for slots with appointments */}
@@ -114,24 +156,31 @@ export const AppointmentTimeline: React.FC<AppointmentTimelineProps> = ({
                 />
               )}
 
-              {/* Time label */}
-              <span className="absolute left-0 top-0 text-right text-xs font-medium text-gray-600 w-10">
-                {time}
-              </span>
+              {/* Time label - only show for hourly slots or slots with appointments */}
+              {(isHourlySlot || hasAppointments) && (
+                <span className={`absolute left-0 top-0 text-right text-xs ${isHourlySlot ? 'font-medium text-gray-600' : 'font-normal text-gray-500'} w-10`}>
+                  {time}
+                </span>
+              )}
 
               {/* Appointments or Add button */}
               {hasAppointments ? (
                 <div className="space-y-2">
                   {appointmentsAtTime.map((appointment) => (
-                    <AppointmentCard key={appointment.id} appointment={appointment} />
+                    <AppointmentCard
+                      key={appointment.id}
+                      appointment={appointment}
+                      onCheckIn={onCheckIn}
+                      onConsultation={onConsultation}
+                    />
                   ))}
                 </div>
               ) : (
                 <Button
                   onClick={() => handleAddAppointment(time)}
                   variant="ghost"
-                  size="md"
-                  className="w-full border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                  size="sm"
+                  className="w-full h-8 border border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 text-xs"
                   ariaLabel={`Add appointment at ${time}`}
                 >
                   + Add Appointment

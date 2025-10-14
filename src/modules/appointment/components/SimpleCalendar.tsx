@@ -10,19 +10,26 @@
 import React, { useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@/components/ui/icons';
 
+interface Appointment {
+  id: string;
+  treatment: string;
+  appointmentStartTime: string;
+  status: string;
+}
+
 interface SimpleCalendarProps {
   /**
    * Array of appointments to display
    */
-  appointments: any[];
+  appointments: Appointment[];
   /**
    * Slot selection handler
    */
-  onSelectSlot: (slot: any) => void;
+  onSelectSlot: (slot: { start: Date; end: Date }) => void;
   /**
    * Event selection handler
    */
-  onSelectEvent: (event: any) => void;
+  onSelectEvent: (event: Appointment) => void;
   /**
    * Additional CSS classes
    */
@@ -92,7 +99,7 @@ export const SimpleCalendar: React.FC<SimpleCalendarProps> = ({
   };
 
   // Handle appointment click
-  const handleAppointmentClick = (appointment: any, event: React.MouseEvent) => {
+  const handleAppointmentClick = (appointment: Appointment, event: React.MouseEvent) => {
     event.stopPropagation();
     onSelectEvent(appointment);
   };

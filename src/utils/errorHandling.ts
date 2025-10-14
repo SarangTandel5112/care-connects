@@ -8,7 +8,10 @@
  * @param error - The error object from API call
  * @returns Formatted error message or undefined
  */
-export const extractErrorMessage = (error: any): string | undefined => {
+export const extractErrorMessage = (error: {
+  response?: { data?: unknown };
+  message?: string;
+}): string | undefined => {
   if (!error) return undefined;
 
   // Extract proper error message from API response
@@ -19,12 +22,12 @@ export const extractErrorMessage = (error: any): string | undefined => {
     if (typeof responseData === 'string') {
       errorMessage = responseData;
     } else if (responseData && typeof responseData === 'object') {
-      const data = responseData as any;
-      if (data.message) {
+      const data = responseData as Record<string, unknown>;
+      if (typeof data.message === 'string') {
         errorMessage = data.message;
-      } else if (data.error) {
+      } else if (typeof data.error === 'string') {
         errorMessage = data.error;
-      } else if (data.details) {
+      } else if (typeof data.details === 'string') {
         errorMessage = data.details;
       }
     }
