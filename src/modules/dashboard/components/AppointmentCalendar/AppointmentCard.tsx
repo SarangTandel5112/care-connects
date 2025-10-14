@@ -25,6 +25,7 @@ interface Doctor {
 interface Appointment {
   id: string;
   time: string;
+  startTime: string;
   patient: Patient;
   doctor: Doctor;
   treatment: string;
@@ -45,6 +46,10 @@ interface AppointmentCardProps {
    */
   onConsultation?: (appointmentId: string, patientId: string) => void;
   /**
+   * Callback for Edit action
+   */
+  onEdit?: (appointment: Appointment) => void;
+  /**
    * Show status badge on the card
    */
   showStatusBadge?: boolean;
@@ -62,6 +67,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   appointment,
   onCheckIn,
   onConsultation,
+  onEdit,
   showStatusBadge = false,
   className = '',
 }) => {
@@ -78,19 +84,20 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   };
 
   const handleStartConsultation = () => {
-    if (onConsultation && status === AppointmentStatus.CHECK_IN) {
+    if (onConsultation) {
       onConsultation(appointment.id, patient.id);
     }
   };
 
   const handleEdit = () => {
-    // TODO: Implement edit functionality
-    console.log('Edit appointment:', appointment.id);
+    if (onEdit) {
+      onEdit(appointment);
+    }
   };
 
   // Determine button states using enum
   const isCheckInDisabled = status !== AppointmentStatus.SCHEDULED;
-  const isConsultationDisabled = status !== AppointmentStatus.CHECK_IN;
+  const isConsultationDisabled = false; // Always enabled for consultation
 
   // Get status badge color
   const getStatusBadgeColor = () => {

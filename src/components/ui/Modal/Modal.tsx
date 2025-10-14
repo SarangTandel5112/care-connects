@@ -140,9 +140,7 @@ const Modal: React.FC<ModalProps> = ({
           )}
 
           {/* Content - Scrollable */}
-          <div className="p-6 flex-1 overflow-y-auto min-h-0 max-h-[calc(90vh-120px)] modal-content">
-            {children}
-          </div>
+          <div className="p-6 flex-1 overflow-y-auto min-h-0 modal-content">{children}</div>
 
           {/* Footer - Sticky */}
           {footer && (

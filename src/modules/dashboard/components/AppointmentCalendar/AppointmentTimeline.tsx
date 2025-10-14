@@ -49,6 +49,10 @@ interface AppointmentTimelineProps {
    */
   onConsultation?: (appointmentId: string, patientId: string) => void;
   /**
+   * Callback for Edit action
+   */
+  onEdit?: (appointment: Appointment) => void;
+  /**
    * Additional CSS classes
    */
   className?: string;
@@ -65,6 +69,7 @@ export const AppointmentTimeline: React.FC<AppointmentTimelineProps> = ({
   onAddAppointment,
   onCheckIn,
   onConsultation,
+  onEdit,
   className = '',
 }) => {
   // Generate 30-minute time slots (9 AM to 6 PM)
@@ -94,10 +99,10 @@ export const AppointmentTimeline: React.FC<AppointmentTimelineProps> = ({
     if (activeStatus === 'All') return true;
     // Map display status to enum values
     const statusMap: Record<string, AppointmentStatus> = {
-      'Scheduled': AppointmentStatus.SCHEDULED,
+      Scheduled: AppointmentStatus.SCHEDULED,
       'Check In': AppointmentStatus.CHECK_IN,
-      'Consultation': AppointmentStatus.CONSULTATION,
-      'Completed': AppointmentStatus.COMPLETED,
+      Consultation: AppointmentStatus.CONSULTATION,
+      Completed: AppointmentStatus.COMPLETED,
     };
     return apt.status === statusMap[activeStatus];
   });
@@ -158,7 +163,9 @@ export const AppointmentTimeline: React.FC<AppointmentTimelineProps> = ({
 
               {/* Time label - only show for hourly slots or slots with appointments */}
               {(isHourlySlot || hasAppointments) && (
-                <span className={`absolute left-0 top-0 text-right text-xs ${isHourlySlot ? 'font-medium text-gray-600' : 'font-normal text-gray-500'} w-10`}>
+                <span
+                  className={`absolute left-0 top-0 text-right text-xs ${isHourlySlot ? 'font-medium text-gray-600' : 'font-normal text-gray-500'} w-10`}
+                >
                   {time}
                 </span>
               )}
@@ -172,6 +179,7 @@ export const AppointmentTimeline: React.FC<AppointmentTimelineProps> = ({
                       appointment={appointment}
                       onCheckIn={onCheckIn}
                       onConsultation={onConsultation}
+                      onEdit={onEdit}
                     />
                   ))}
                 </div>

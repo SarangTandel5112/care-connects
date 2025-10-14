@@ -58,22 +58,6 @@ export const AppointmentDateSelector: React.FC<AppointmentDateSelectorProps> = (
         }}
         popupClassName="appointment-date-picker-dropdown"
       />
-      <style jsx global>{`
-        .custom-date-picker .ant-picker-input > input {
-          font-weight: 600;
-          font-size: 0.875rem;
-          color: #111827;
-        }
-        .custom-date-picker:hover {
-          border-color: #3b82f6;
-        }
-        .appointment-date-picker-dropdown .ant-picker-cell-selected .ant-picker-cell-inner {
-          background: #3b82f6;
-        }
-        .appointment-date-picker-dropdown .ant-picker-today-btn {
-          color: #3b82f6;
-        }
-      `}</style>
     </div>
   );
 };

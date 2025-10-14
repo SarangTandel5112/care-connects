@@ -76,12 +76,15 @@ body {
 
   /* Hide scrollbar but keep functionality - Mobile friendly */
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Chrome, Safari and Opera */
+    display: none;
+    /* Chrome, Safari and Opera */
   }
 }
 
@@ -102,4 +105,127 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* ===== CONSULTATION PREVIEW PRINT STYLES ===== */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .consultation-preview,
+  .consultation-preview * {
+    visibility: visible;
+  }
+
+  .consultation-preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+}
+
+/* ===== APPOINTMENT DATE PICKER STYLES ===== */
+.custom-date-picker .ant-picker-input>input {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #111827;
+}
+
+.custom-date-picker:hover {
+  border-color: #3b82f6;
+}
+
+.appointment-date-picker-dropdown .ant-picker-cell-selected .ant-picker-cell-inner {
+  background: #3b82f6;
+}
+
+.appointment-date-picker-dropdown .ant-picker-today-btn {
+  color: #3b82f6;
+}
+
+/* ===== MODAL STYLES ===== */
+.modal-content {
+  max-height: calc(90vh - 120px);
+}
+
+/* ===== COMMON COMPONENT STYLES ===== */
+.consultation-preview {
+  /* Base styles for consultation preview */
+}
+
+/* ===== UTILITY CLASSES ===== */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Focus styles for better accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+/* Button variants */
+.btn-primary {
+  @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500;
+}
+
+.btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+/* Input styles */
+.input-base {
+  @apply w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-900;
+}
+
+.input-error {
+  @apply border-red-500 focus:ring-red-500;
+}
+
+.input-normal {
+  @apply border-gray-300;
+}
+
+/* Table styles */
+.table-header-gray {
+  @apply bg-gray-50;
+}
+
+.table-row-hover {
+  @apply hover:bg-blue-50/30;
+}
+
+/* Card styles */
+.card-base {
+  @apply bg-white rounded-lg border border-gray-200 shadow-sm;
+}
+
+.card-elevated {
+  @apply bg-white rounded-lg border border-gray-200 shadow-md;
+}
+
+/* Status indicators */
+.status-success {
+  @apply bg-green-50 text-green-700 border-green-200;
+}
+
+.status-warning {
+  @apply bg-yellow-50 text-yellow-700 border-yellow-200;
+}
+
+.status-error {
+  @apply bg-red-50 text-red-700 border-red-200;
+}
+
+.status-info {
+  @apply bg-blue-50 text-blue-700 border-blue-200;
 }

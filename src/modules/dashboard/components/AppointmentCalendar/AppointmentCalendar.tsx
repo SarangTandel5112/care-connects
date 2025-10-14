@@ -154,14 +154,23 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
   };
 
   const handleConsultation = (appointmentId: string, patientId: string) => {
-    // Redirect immediately to consultations page using Next.js router
+    // Redirect to consultations page with query parameters
     router.push(`/consultations?appointmentId=${appointmentId}&patientId=${patientId}`);
+  };
 
-    // Update appointment status in the background
-    updateAppointment.mutate({
-      id: appointmentId,
-      data: { status: 'Consultation' } as UpdateAppointment,
-    });
+  const handleEdit = (transformedAppointment: any) => {
+    // Find the original appointment by ID
+    const originalAppointment = appointmentsForDate.find(
+      (apt) => apt.id === transformedAppointment.id
+    );
+    if (originalAppointment) {
+      setModalState({
+        isOpen: true,
+        mode: 'edit',
+        appointment: originalAppointment,
+        prefilledTimes: null,
+      });
+    }
   };
 
   const handleAddAppointment = () => {
@@ -284,7 +293,11 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
       <div className={`flex h-full flex-col gap-4 ${className}`}>
         <Alert
           message="Error Loading Appointments"
-          description={error instanceof Error ? error.message : 'Failed to load appointments. Please try again.'}
+          description={
+            error instanceof Error
+              ? error.message
+              : 'Failed to load appointments. Please try again.'
+          }
           type="error"
           showIcon
           closable
@@ -325,6 +338,7 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
             onAddAppointment={handleAddAppointmentAtTime}
             onCheckIn={handleCheckIn}
             onConsultation={handleConsultation}
+            onEdit={handleEdit}
           />
         </div>
       ) : (
@@ -338,6 +352,7 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
                   appointment={appointment}
                   onCheckIn={handleCheckIn}
                   onConsultation={handleConsultation}
+                  onEdit={handleEdit}
                   showStatusBadge={true}
                 />
               ))}

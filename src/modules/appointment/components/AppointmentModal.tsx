@@ -19,6 +19,7 @@ import {
   Doctor,
 } from '../types/appointment.types';
 import { usePatients, useDoctors } from '../hooks/useAppointments';
+import { ModalMode, isCreateMode, isEditMode, isViewMode } from '@/types/modal.types';
 
 // Helper function to format date for datetime-local input (preserves local timezone)
 const formatDateTimeLocal = (date: Date | string | undefined): string => {
@@ -36,8 +37,8 @@ const formatDateTimeLocal = (date: Date | string | undefined): string => {
 };
 
 // Get validation schema based on mode
-const getValidationSchema = (mode: 'view' | 'create' | 'edit') => {
-  if (mode === 'view') {
+const getValidationSchema = (mode: ModalMode) => {
+  if (isViewMode(mode)) {
     return Yup.object({});
   }
 
@@ -54,7 +55,7 @@ const getValidationSchema = (mode: 'view' | 'create' | 'edit') => {
 interface AppointmentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  mode: 'view' | 'create' | 'edit';
+  mode: ModalMode;
   appointment?: Appointment;
   onSave?: (data: CreateAppointment | UpdateAppointment) => void;
   onEdit?: () => void;
@@ -123,7 +124,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
 
   // Get initial values based on mode (memoized)
   const initialValues = useMemo((): CreateAppointment | UpdateAppointment => {
-    if (mode === 'create') {
+    if (isCreateMode(mode)) {
       return {
         status: AppointmentStatus.SCHEDULED,
         appointmentStartTime: prefilledTimes?.start || new Date(),
@@ -132,7 +133,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
         patientId: '',
         doctorId: '',
       };
-    } else if (mode === 'edit' || mode === 'view') {
+    } else if (isEditMode(mode) || isViewMode(mode)) {
       const appointmentData = appointment || ({} as Appointment);
       return {
         status: appointmentData.status || AppointmentStatus.SCHEDULED,
