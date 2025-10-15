@@ -1,5 +1,6 @@
 /**
  * Token management utilities for JWT-based authentication
+ * Uses localStorage for client-side token storage
  */
 
 import type { User } from '@/types/auth';
