@@ -10,10 +10,16 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { Field, FieldProps, FormikProps } from 'formik';
-import { InputNumber, Switch, Card, Divider } from 'antd';
-import { DollarOutlined, PercentageOutlined, CalculatorOutlined } from '@ant-design/icons';
-import { ConsultationFormValues } from '../types/consultation.types';
+import { Field, FieldProps, FormikProps, FieldArray } from 'formik';
+import { InputNumber, Switch, Card, Divider, Button, Select, Input } from 'antd';
+import {
+  DollarOutlined,
+  PercentageOutlined,
+  CalculatorOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
+import { ConsultationFormValues, PaymentMethod, PaymentStatus } from '../types/consultation.types';
 
 interface BillingSectionProps {
   formik: FormikProps<ConsultationFormValues>;
@@ -48,12 +54,33 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
     return Math.max(0, subTotal + tax - (formik.values.billing.discount || 0));
   }, [subTotal, tax, formik.values.billing.discount]);
 
+  // Calculate total paid from payments
+  const totalPaid = useMemo(() => {
+    return formik.values.payments.reduce((total, payment) => {
+      return total + (payment.amountPaid || 0);
+    }, 0);
+  }, [formik.values.payments]);
+
+  // Calculate pending amount
+  const pendingAmount = useMemo(() => {
+    return Math.max(0, totalAmount - totalPaid);
+  }, [totalAmount, totalPaid]);
+
+  // Determine payment status
+  const paymentStatus = useMemo(() => {
+    if (totalPaid === 0) return PaymentStatus.PENDING;
+    if (pendingAmount === 0) return PaymentStatus.PAID;
+    return PaymentStatus.PARTIALLY_PAID;
+  }, [totalPaid, pendingAmount]);
+
   // Update billing values when calculations change
+  // Note: pendingAmount and paymentStatus are NOT sent to backend - they are calculated server-side
   useEffect(() => {
     formik.setFieldValue('billing.procedureAmount', procedureAmount);
     formik.setFieldValue('billing.subTotal', subTotal);
     formik.setFieldValue('billing.tax', tax);
     formik.setFieldValue('billing.totalAmount', totalAmount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [procedureAmount, subTotal, tax, totalAmount]);
 
   return (
@@ -65,7 +92,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
       </div>
 
       {/* Billing Form */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column - Input Fields */}
         <div className="space-y-4">
           {/* Procedure Amount (Read-only) */}
@@ -83,65 +110,67 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
             </p>
           </div>
 
-          {/* Consultation Fee */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Consultation Fee</label>
-            <Field name="billing.consultationFee">
-              {({ field }: FieldProps) => (
-                <InputNumber
-                  {...field}
-                  value={field.value || 0}
-                  onChange={(value) => formik.setFieldValue('billing.consultationFee', value || 0)}
-                  min={0}
-                  precision={2}
-                  className="w-full"
-                  size="large"
-                  prefix="₹"
-                />
-              )}
-            </Field>
-          </div>
+          {/* Consultation Fee, Other Charges, Discount in One Row */}
+          <div className="grid grid-cols-3 gap-3">
+            {/* Consultation Fee */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Consultation Fee
+              </label>
+              <Field name="billing.consultationFee">
+                {({ field }: FieldProps) => (
+                  <InputNumber
+                    {...field}
+                    value={field.value || 0}
+                    onChange={(value) => formik.setFieldValue('billing.consultationFee', value || 0)}
+                    min={0}
+                    precision={2}
+                    className="w-full"
+                    size="large"
+                    prefix="₹"
+                  />
+                )}
+              </Field>
+            </div>
 
-          {/* Other Amount */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Other Charges</label>
-            <Field name="billing.otherAmount">
-              {({ field }: FieldProps) => (
-                <InputNumber
-                  {...field}
-                  value={field.value || 0}
-                  onChange={(value) => formik.setFieldValue('billing.otherAmount', value || 0)}
-                  min={0}
-                  precision={2}
-                  className="w-full"
-                  size="large"
-                  prefix="₹"
-                />
-              )}
-            </Field>
-            <p className="text-xs text-gray-500 mt-1">
-              Additional charges (lab tests, materials, etc.)
-            </p>
-          </div>
+            {/* Other Charges */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Other Charges</label>
+              <Field name="billing.otherAmount">
+                {({ field }: FieldProps) => (
+                  <InputNumber
+                    {...field}
+                    value={field.value || 0}
+                    onChange={(value) => formik.setFieldValue('billing.otherAmount', value || 0)}
+                    min={0}
+                    precision={2}
+                    className="w-full"
+                    size="large"
+                    prefix="₹"
+                  />
+                )}
+              </Field>
+            </div>
 
-          {/* Discount */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Discount</label>
-            <Field name="billing.discount">
-              {({ field }: FieldProps) => (
-                <InputNumber
-                  {...field}
-                  value={field.value || 0}
-                  onChange={(value) => formik.setFieldValue('billing.discount', value || 0)}
-                  min={0}
-                  max={subTotal + tax}
-                  precision={2}
-                  className="w-full"
-                  size="large"
-                  prefix="₹"
-                />
-              )}
-            </Field>
+            {/* Discount */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Discount</label>
+              <Field name="billing.discount">
+                {({ field }: FieldProps) => (
+                  <InputNumber
+                    {...field}
+                    value={field.value || 0}
+                    onChange={(value) => formik.setFieldValue('billing.discount', value || 0)}
+                    min={0}
+                    max={subTotal + tax}
+                    precision={2}
+                    className="w-full"
+                    size="large"
+                    prefix="₹"
+                  />
+                )}
+              </Field>
+            </div>
           </div>
 
           {/* Apply GST */}
@@ -160,6 +189,187 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
                 />
               )}
             </Field>
+          </div>
+
+          {/* Payment Section */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-base font-semibold text-gray-900">Payment Records</h4>
+              {pendingAmount > 0 && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  size="small"
+                  onClick={() => {
+                    const newPayment = {
+                      amountPaid: Math.min(pendingAmount, totalAmount),
+                      modeOfPayment: PaymentMethod.CASH,
+                      paymentReference: '',
+                      paymentStatus: PaymentStatus.PAID,
+                    };
+                    formik.setFieldValue('payments', [...formik.values.payments, newPayment]);
+                  }}
+                >
+                  Add Payment
+                </Button>
+              )}
+            </div>
+
+            <FieldArray name="payments">
+              {({ remove }) => (
+                <div className="space-y-4">
+                  {formik.values.payments.length > 0 ? (
+                    <>
+                      {/* Payment Input Forms */}
+                      <div className="space-y-3">
+                        {formik.values.payments.map((payment, index) => (
+                          <div
+                            key={index}
+                            className="p-3 bg-gray-50 rounded border border-gray-200 space-y-3"
+                          >
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-700">
+                                Payment #{index + 1}
+                              </span>
+                              <Button
+                                type="text"
+                                danger
+                                size="small"
+                                icon={<DeleteOutlined />}
+                                onClick={() => remove(index)}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2">
+                              {/* Amount Paid */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Amount <span className="text-red-500">*</span>
+                                </label>
+                                <Field name={`payments.${index}.amountPaid`}>
+                                  {({ field }: FieldProps) => (
+                                    <InputNumber
+                                      {...field}
+                                      value={field.value || 0}
+                                      onChange={(value) =>
+                                        formik.setFieldValue(`payments.${index}.amountPaid`, value || 0)
+                                      }
+                                      min={0}
+                                      max={pendingAmount + (payment.amountPaid || 0)}
+                                      precision={2}
+                                      className="w-full"
+                                      prefix="₹"
+                                      size="small"
+                                    />
+                                  )}
+                                </Field>
+                              </div>
+
+                              {/* Mode of Payment */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Method <span className="text-red-500">*</span>
+                                </label>
+                                <Field name={`payments.${index}.modeOfPayment`}>
+                                  {({ field }: FieldProps) => (
+                                    <Select
+                                      {...field}
+                                      value={field.value || PaymentMethod.CASH}
+                                      onChange={(value) =>
+                                        formik.setFieldValue(`payments.${index}.modeOfPayment`, value)
+                                      }
+                                      className="w-full"
+                                      size="small"
+                                      options={Object.values(PaymentMethod).map((method) => ({
+                                        label: method,
+                                        value: method,
+                                      }))}
+                                    />
+                                  )}
+                                </Field>
+                              </div>
+
+                              {/* Payment Reference */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Reference
+                                </label>
+                                <Field name={`payments.${index}.paymentReference`}>
+                                  {({ field }: FieldProps) => (
+                                    <Input
+                                      {...field}
+                                      value={field.value || ''}
+                                      onChange={(e) =>
+                                        formik.setFieldValue(
+                                          `payments.${index}.paymentReference`,
+                                          e.target.value
+                                        )
+                                      }
+                                      placeholder="Ref #"
+                                      size="small"
+                                    />
+                                  )}
+                                </Field>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Payment Table Display */}
+                      <div className="mt-4 border border-gray-200 rounded overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">
+                                #
+                              </th>
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">
+                                Amount
+                              </th>
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">
+                                Method
+                              </th>
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">
+                                Reference
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {formik.values.payments.map((payment, index) => (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-3 py-2 text-gray-900">{index + 1}</td>
+                                <td className="px-3 py-2 font-semibold text-gray-900">
+                                  ₹{(payment.amountPaid || 0).toFixed(2)}
+                                </td>
+                                <td className="px-3 py-2 text-gray-700">{payment.modeOfPayment}</td>
+                                <td className="px-3 py-2 text-gray-600 text-xs">
+                                  {payment.paymentReference || '-'}
+                                </td>
+                              </tr>
+                            ))}
+                            <tr className="bg-blue-50 font-semibold">
+                              <td className="px-3 py-2 text-gray-900" colSpan={1}>
+                                Total
+                              </td>
+                              <td className="px-3 py-2 text-blue-700">₹{totalPaid.toFixed(2)}</td>
+                              <td className="px-3 py-2" colSpan={2}></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 border border-dashed border-gray-300 rounded">
+                      <p className="text-sm">No payments recorded yet</p>
+                      <p className="text-xs mt-1">Click &quot;Add Payment&quot; to record a payment</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </FieldArray>
           </div>
         </div>
 
@@ -233,6 +443,41 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
                 <span className="text-lg font-bold text-green-900">Total Amount:</span>
                 <span className="text-2xl font-bold text-green-700">₹{totalAmount.toFixed(2)}</span>
               </div>
+
+              {/* Payment Information */}
+              <Divider className="my-2" />
+
+              {/* Total Paid */}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700">Total Paid:</span>
+                <span className="font-semibold text-blue-600">₹{totalPaid.toFixed(2)}</span>
+              </div>
+
+              {/* Pending Amount */}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-800 font-medium">Pending Amount:</span>
+                <span
+                  className={`font-bold text-lg ${pendingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}
+                >
+                  ₹{pendingAmount.toFixed(2)}
+                </span>
+              </div>
+
+              {/* Payment Status */}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700">Payment Status:</span>
+                <span
+                  className={`font-semibold px-2 py-1 rounded text-sm ${
+                    paymentStatus === PaymentStatus.PAID
+                      ? 'bg-green-100 text-green-700'
+                      : paymentStatus === PaymentStatus.PARTIALLY_PAID
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {paymentStatus}
+                </span>
+              </div>
             </div>
 
             {/* Calculation Formula Info */}
@@ -252,15 +497,6 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
               </p>
             </div>
           </Card>
-
-          {/* Payment Section Placeholder */}
-          <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded">
-            <h4 className="text-sm font-semibold text-gray-900 mb-2">Payment Records</h4>
-            <p className="text-xs text-gray-600">
-              Payment tracking functionality can be added here (amount paid, balance due, payment
-              method)
-            </p>
-          </div>
         </div>
       </div>
 

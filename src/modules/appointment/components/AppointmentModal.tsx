@@ -142,7 +142,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
         treatment: appointmentData.treatment || '',
         patientId: appointmentData.patient?.id || '',
         doctorId: appointmentData.doctor?.id || '',
-        ...(mode === 'edit' && appointmentData.id ? { id: appointmentData.id } : {}),
+        ...(isEditMode(mode) && appointmentData.id ? { id: appointmentData.id } : {}),
       };
     }
     return {
@@ -184,7 +184,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
   );
 
   const renderFooter = useCallback(() => {
-    if (mode === 'view') {
+    if (isViewMode(mode)) {
       return (
         <div className="flex justify-end space-x-2">
           <Button variant="secondary" onClick={onClose}>
@@ -210,7 +210,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
           Cancel
         </Button>
         <Button type="submit" form="appointment-form" loading={isLoading} disabled={isLoading}>
-          {mode === 'create' ? 'Schedule Appointment' : 'Update Appointment'}
+          {isCreateMode(mode) ? 'Schedule Appointment' : 'Update Appointment'}
         </Button>
       </div>
     );
@@ -240,7 +240,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
                     {({ field }: FieldProps) => (
                       <select
                         {...field}
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       >
                         {Object.values(AppointmentStatus).map((status) => (
@@ -261,7 +261,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
                       <Input
                         {...field}
                         placeholder="Enter treatment details"
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                       />
                     )}
                   </Field>
@@ -295,7 +295,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
                         onChange={(e) =>
                           setFieldValue('appointmentStartTime', new Date(e.target.value))
                         }
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                         className={
                           errors.appointmentStartTime && touched.appointmentStartTime
                             ? 'border-red-500'
@@ -322,7 +322,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
                         onChange={(e) =>
                           setFieldValue('appointmentEndTime', new Date(e.target.value))
                         }
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                         className={
                           errors.appointmentEndTime && touched.appointmentEndTime
                             ? 'border-red-500'
@@ -341,7 +341,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
             </div>
 
             {/* Additional Info Section (only in view mode) */}
-            {mode === 'view' && appointment && (
+            {isViewMode(mode) && appointment && (
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
                   <CalendarOutlined className="mr-2 text-gray-600" />
@@ -517,6 +517,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
       handleSubmit,
       selectedPatient,
       selectedDoctor,
+      appointment,
       patientSearch,
       doctorSearch,
       isPatientDropdownOpen,

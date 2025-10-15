@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { FormikProps } from 'formik';
 import { Modal, Select, Input, Button, Tag, Table } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined } from '@ant-design/icons';
 import {
   ConsultationFormValues,
   CreateClinicalExamination,
@@ -123,7 +123,6 @@ export const ToothChart: React.FC<ToothChartProps> = ({ formik }) => {
   const renderTooth = (toothNumber: number) => {
     const examination = getToothExamination(toothNumber);
     const hasCondition = examination !== null;
-    const isLowerJaw = toothNumber >= 31 && toothNumber <= 48;
     const shouldFlip =
       (toothNumber >= 21 && toothNumber <= 28) || (toothNumber >= 41 && toothNumber <= 48);
 

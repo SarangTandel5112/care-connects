@@ -22,10 +22,11 @@ import {
   useUpdateAppointment,
   useDeleteAppointment,
 } from '@/modules/appointment/hooks/useAppointments';
+import { ModalMode } from '@/types/modal.types';
 
 export default function AppointmentsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'view' | 'create' | 'edit'>('create');
+  const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.CREATE);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>(
     undefined
   );
@@ -41,26 +42,26 @@ export default function AppointmentsPage() {
 
   const handleAddAppointment = () => {
     setSelectedAppointment(undefined);
-    setModalMode('create');
+    setModalMode(ModalMode.CREATE);
     setIsModalOpen(true);
   };
 
   const handleSelectSlot = (slotInfo: { start: Date; end: Date }) => {
     setSelectedAppointment(undefined);
     setPrefilledTimes(slotInfo);
-    setModalMode('create');
+    setModalMode(ModalMode.CREATE);
     setIsModalOpen(true);
   };
 
   const handleViewAppointment = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
-    setModalMode('view');
+    setModalMode(ModalMode.VIEW);
     setIsModalOpen(true);
   };
 
   const handleEditAppointment = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
-    setModalMode('edit');
+    setModalMode(ModalMode.EDIT);
     setIsModalOpen(true);
   };
 
@@ -113,7 +114,7 @@ export default function AppointmentsPage() {
 
   const handleEditFromModal = () => {
     // Switch from view mode to edit mode
-    setModalMode('edit');
+    setModalMode(ModalMode.EDIT);
   };
 
   const handleDeleteFromModal = () => {

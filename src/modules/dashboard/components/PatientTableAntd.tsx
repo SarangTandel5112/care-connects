@@ -18,9 +18,15 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons';
 import type { Patient, CreatePatient, UpdatePatient } from '@/modules/patient/types/patient.types';
-import { usePatients, useCreatePatient, useUpdatePatient, useDeletePatient } from '@/modules/patient/hooks/usePatients';
+import {
+  usePatients,
+  useCreatePatient,
+  useUpdatePatient,
+  useDeletePatient,
+} from '@/modules/patient/hooks/usePatients';
 import { PatientModal } from '@/modules/patient/components/PatientModal';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { ModalMode, isCreateMode, isEditMode } from '@/types/modal.types';
 
 interface PatientTableAntdProps {
   className?: string;
@@ -30,11 +36,11 @@ export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = 
   const [searchText, setSearchText] = useState('');
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
-    mode: 'view' | 'create' | 'edit';
+    mode: ModalMode;
     patient?: Patient;
   }>({
     isOpen: false,
-    mode: 'create',
+    mode: ModalMode.CREATE,
     patient: undefined,
   });
   const [deleteConfirmState, setDeleteConfirmState] = useState<{
@@ -81,14 +87,14 @@ export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = 
   const handleView = (patientId: string) => {
     const patient = patients.find((p) => p.id === patientId);
     if (patient) {
-      setModalState({ isOpen: true, mode: 'view', patient });
+      setModalState({ isOpen: true, mode: ModalMode.VIEW, patient });
     }
   };
 
   const handleEdit = (patientId: string) => {
     const patient = patients.find((p) => p.id === patientId);
     if (patient) {
-      setModalState({ isOpen: true, mode: 'edit', patient });
+      setModalState({ isOpen: true, mode: ModalMode.EDIT, patient });
     }
   };
 
@@ -117,26 +123,29 @@ export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = 
   };
 
   const handleAddPatient = () => {
-    setModalState({ isOpen: true, mode: 'create', patient: undefined });
+    setModalState({ isOpen: true, mode: ModalMode.CREATE, patient: undefined });
   };
 
   const handleModalClose = () => {
-    setModalState({ isOpen: false, mode: 'create', patient: undefined });
+    setModalState({ isOpen: false, mode: ModalMode.CREATE, patient: undefined });
   };
 
   const handleModalSave = (data: CreatePatient | UpdatePatient) => {
-    if (modalState.mode === 'create') {
+    if (isCreateMode(modalState.mode)) {
       createPatient.mutate(data as CreatePatient, {
         onSuccess: () => {
           handleModalClose();
         },
       });
-    } else if (modalState.mode === 'edit') {
-      updatePatient.mutate({ data: data as UpdatePatient, id: modalState.patient!.id }, {
-        onSuccess: () => {
-          handleModalClose();
-        },
-      });
+    } else if (isEditMode(modalState.mode)) {
+      updatePatient.mutate(
+        { data: data as UpdatePatient, id: modalState.patient!.id },
+        {
+          onSuccess: () => {
+            handleModalClose();
+          },
+        }
+      );
     }
   };
 
@@ -266,7 +275,9 @@ export const PatientTableAntd: React.FC<PatientTableAntdProps> = ({ className = 
           <Alert
             message="Error Loading Patients"
             description={
-              error instanceof Error ? error.message : 'Failed to load patient data. Please try again.'
+              error instanceof Error
+                ? error.message
+                : 'Failed to load patient data. Please try again.'
             }
             type="error"
             showIcon

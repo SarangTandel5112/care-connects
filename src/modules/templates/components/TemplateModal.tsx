@@ -12,13 +12,14 @@ import { Input } from '@/components/ui';
 import { TrashIcon } from '@/components/ui/icons';
 import { MedicineType } from '../types/template.types';
 import { useDeleteInstruction, useMedicineTemplates } from '../hooks/useTemplates';
+import { ModalMode, isCreateMode, isEditMode, isViewMode } from '@/types/modal.types';
 
 import type { AnyTemplate, TemplateType } from '../types/template.types';
 
 interface TemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  mode: 'view' | 'create' | 'edit';
+  mode: ModalMode;
   templateType: TemplateType;
   templateData?: AnyTemplate;
   onSave?: (data: Record<string, unknown>) => void;
@@ -71,14 +72,19 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
   useEffect(() => {
     console.log('Form initialization effect:', { mode, templateType, isOpen });
     if (isOpen) {
-      if (mode === 'create') {
+      if (isCreateMode(mode)) {
         const defaultData = getDefaultFormData(templateType);
         console.log('Setting default form data:', defaultData);
         setFormData(defaultData);
-      } else if (mode === 'edit' || mode === 'view') {
+      } else if (isEditMode(mode) || isViewMode(mode)) {
         console.log('Setting template data:', templateData);
         console.log('Template type:', templateType);
-        console.log('Medicines in template data:', templateData && 'medicines' in templateData ? (templateData as { medicines: unknown }).medicines : undefined);
+        console.log(
+          'Medicines in template data:',
+          templateData && 'medicines' in templateData
+            ? (templateData as { medicines: unknown }).medicines
+            : undefined
+        );
         setFormData(templateData ? (templateData as unknown as Record<string, unknown>) : {});
       }
       setErrors({});
@@ -282,7 +288,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           <select
             value={typeof formData.type === 'string' ? formData.type : 'tablet'}
             onChange={(e) => handleInputChange('type', e.target.value)}
-            disabled={mode === 'view'}
+            disabled={isViewMode(mode)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
           >
             {Object.values(MedicineType).map((type) => (
@@ -296,10 +302,14 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Strength</label>
           <Input
-            value={typeof formData.strength === 'string' || typeof formData.strength === 'number' ? formData.strength : ''}
+            value={
+              typeof formData.strength === 'string' || typeof formData.strength === 'number'
+                ? formData.strength
+                : ''
+            }
             onChange={(e) => handleInputChange('strength', e.target.value)}
             placeholder="e.g., 500mg"
-            disabled={mode === 'view'}
+            disabled={isViewMode(mode)}
           />
         </div>
       </div>
@@ -308,20 +318,28 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
           <Input
-            value={typeof formData.unit === 'string' || typeof formData.unit === 'number' ? formData.unit : ''}
+            value={
+              typeof formData.unit === 'string' || typeof formData.unit === 'number'
+                ? formData.unit
+                : ''
+            }
             onChange={(e) => handleInputChange('unit', e.target.value)}
             placeholder="e.g., mg, ml"
-            disabled={mode === 'view'}
+            disabled={isViewMode(mode)}
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
           <Input
-            value={typeof formData.company === 'string' || typeof formData.company === 'number' ? formData.company : ''}
+            value={
+              typeof formData.company === 'string' || typeof formData.company === 'number'
+                ? formData.company
+                : ''
+            }
             onChange={(e) => handleInputChange('company', e.target.value)}
             placeholder="Pharmaceutical company"
-            disabled={mode === 'view'}
+            disabled={isViewMode(mode)}
           />
         </div>
       </div>
@@ -331,10 +349,14 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
           <Input
             type="number"
-            value={typeof formData.duration === 'string' || typeof formData.duration === 'number' ? formData.duration : ''}
+            value={
+              typeof formData.duration === 'string' || typeof formData.duration === 'number'
+                ? formData.duration
+                : ''
+            }
             onChange={(e) => handleInputChange('duration', e.target.value)}
             placeholder="Duration"
-            disabled={mode === 'view'}
+            disabled={isViewMode(mode)}
           />
         </div>
 
@@ -343,7 +365,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           <select
             value={typeof formData.durationType === 'string' ? formData.durationType : 'day'}
             onChange={(e) => handleInputChange('durationType', e.target.value)}
-            disabled={mode === 'view'}
+            disabled={isViewMode(mode)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
           >
             <option value="hour">Hour</option>
@@ -360,10 +382,14 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">Morning</label>
           <Input
             type="number"
-            value={typeof formData.morning === 'string' || typeof formData.morning === 'number' ? formData.morning : ''}
+            value={
+              typeof formData.morning === 'string' || typeof formData.morning === 'number'
+                ? formData.morning
+                : ''
+            }
             onChange={(e) => handleInputChange('morning', e.target.value)}
             placeholder="Dosage"
-            disabled={mode === 'view'}
+            disabled={isViewMode(mode)}
           />
         </div>
 
@@ -371,10 +397,14 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">Noon</label>
           <Input
             type="number"
-            value={typeof formData.noon === 'string' || typeof formData.noon === 'number' ? formData.noon : ''}
+            value={
+              typeof formData.noon === 'string' || typeof formData.noon === 'number'
+                ? formData.noon
+                : ''
+            }
             onChange={(e) => handleInputChange('noon', e.target.value)}
             placeholder="Dosage"
-            disabled={mode === 'view'}
+            disabled={isViewMode(mode)}
           />
         </div>
 
@@ -382,10 +412,14 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">Evening</label>
           <Input
             type="number"
-            value={typeof formData.evening === 'string' || typeof formData.evening === 'number' ? formData.evening : ''}
+            value={
+              typeof formData.evening === 'string' || typeof formData.evening === 'number'
+                ? formData.evening
+                : ''
+            }
             onChange={(e) => handleInputChange('evening', e.target.value)}
             placeholder="Dosage"
-            disabled={mode === 'view'}
+            disabled={isViewMode(mode)}
           />
         </div>
       </div>
@@ -393,7 +427,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
         <textarea
-          value={typeof formData.note === 'string' || typeof formData.note === 'number' ? formData.note : ''}
+          value={
+            typeof formData.note === 'string' || typeof formData.note === 'number'
+              ? formData.note
+              : ''
+          }
           onChange={(e) => handleInputChange('note', e.target.value)}
           placeholder="Additional notes"
           disabled={mode === 'view'}
@@ -409,7 +447,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Advice Name *</label>
         <Input
-          value={typeof formData.name === 'string' || typeof formData.name === 'number' ? formData.name : ''}
+          value={
+            typeof formData.name === 'string' || typeof formData.name === 'number'
+              ? formData.name
+              : ''
+          }
           onChange={(e) => handleInputChange('name', e.target.value)}
           placeholder="Enter advice name"
           disabled={mode === 'view'}
@@ -421,7 +463,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Advice Description *</label>
         <textarea
-          value={typeof formData.description === 'string' || typeof formData.description === 'number' ? formData.description : ''}
+          value={
+            typeof formData.description === 'string' || typeof formData.description === 'number'
+              ? formData.description
+              : ''
+          }
           onChange={(e) => handleInputChange('description', e.target.value)}
           placeholder="Enter advice description"
           disabled={mode === 'view'}
@@ -438,7 +484,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Complaint Name *</label>
         <Input
-          value={typeof formData.name === 'string' || typeof formData.name === 'number' ? formData.name : ''}
+          value={
+            typeof formData.name === 'string' || typeof formData.name === 'number'
+              ? formData.name
+              : ''
+          }
           onChange={(e) => handleInputChange('name', e.target.value)}
           placeholder="Enter complaint name"
           disabled={mode === 'view'}
@@ -452,7 +502,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           Complaint Description *
         </label>
         <textarea
-          value={typeof formData.description === 'string' || typeof formData.description === 'number' ? formData.description : ''}
+          value={
+            typeof formData.description === 'string' || typeof formData.description === 'number'
+              ? formData.description
+              : ''
+          }
           onChange={(e) => handleInputChange('description', e.target.value)}
           placeholder="Enter complaint description"
           disabled={mode === 'view'}
@@ -469,7 +523,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Procedure Name *</label>
         <Input
-          value={typeof formData.name === 'string' || typeof formData.name === 'number' ? formData.name : ''}
+          value={
+            typeof formData.name === 'string' || typeof formData.name === 'number'
+              ? formData.name
+              : ''
+          }
           onChange={(e) => handleInputChange('name', e.target.value)}
           placeholder="Enter procedure name"
           disabled={mode === 'view'}
@@ -481,7 +539,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Note *</label>
         <textarea
-          value={typeof formData.note === 'string' || typeof formData.note === 'number' ? formData.note : ''}
+          value={
+            typeof formData.note === 'string' || typeof formData.note === 'number'
+              ? formData.note
+              : ''
+          }
           onChange={(e) => handleInputChange('note', e.target.value)}
           placeholder="Enter procedure note"
           disabled={mode === 'view'}
@@ -495,7 +557,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
         <label className="block text-sm font-medium text-gray-700 mb-1">Unit Cost *</label>
         <Input
           type="number"
-          value={typeof formData.unitCost === 'string' || typeof formData.unitCost === 'number' ? formData.unitCost : ''}
+          value={
+            typeof formData.unitCost === 'string' || typeof formData.unitCost === 'number'
+              ? formData.unitCost
+              : ''
+          }
           onChange={(e) => handleInputChange('unitCost', e.target.value)}
           placeholder="Enter cost"
           disabled={mode === 'view'}
@@ -519,85 +585,96 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           )}
         </div>
 
-        {Array.isArray(formData.instructions) && formData.instructions.map((instruction, index: number) => {
-          const inst = instruction as { id?: string; name?: string; description?: string; visitDetails?: string; duration?: string };
-          return (
-          <div key={index} className="border border-gray-200 rounded-lg p-4 mb-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Instruction {index + 1}</span>
-              {mode !== 'view' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeInstruction(index)}
-                  disabled={deleteInstruction.isPending}
-                  loading={deleteInstruction.isPending}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  <TrashIcon className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <Input
-                  value={inst.name || ''}
-                  onChange={(e) => updateInstruction(index, 'name', e.target.value)}
-                  placeholder="Instruction name"
-                  disabled={mode === 'view'}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  value={inst.description || ''}
-                  onChange={(e) => updateInstruction(index, 'description', e.target.value)}
-                  placeholder="Instruction description"
-                  disabled={mode === 'view'}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Visit Details
-                  </label>
-                  <select
-                    value={inst.visitDetails || 'before visit'}
-                    onChange={(e) => updateInstruction(index, 'visitDetails', e.target.value)}
-                    disabled={mode === 'view'}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  >
-                    <option value="before visit">Before Visit</option>
-                    <option value="after visit">After Visit</option>
-                  </select>
+        {Array.isArray(formData.instructions) &&
+          formData.instructions.map((instruction, index: number) => {
+            const inst = instruction as {
+              id?: string;
+              name?: string;
+              description?: string;
+              visitDetails?: string;
+              duration?: string;
+            };
+            return (
+              <div key={index} className="border border-gray-200 rounded-lg p-4 mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Instruction {index + 1}</span>
+                  {mode !== 'view' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeInstruction(index)}
+                      disabled={deleteInstruction.isPending}
+                      loading={deleteInstruction.isPending}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
-                  <select
-                    value={inst.duration || 'hour'}
-                    onChange={(e) => updateInstruction(index, 'duration', e.target.value)}
-                    disabled={mode === 'view'}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  >
-                    <option value="hour">Hour</option>
-                    <option value="day">Day</option>
-                    <option value="week">Week</option>
-                    <option value="month">Month</option>
-                    <option value="year">Year</option>
-                  </select>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <Input
+                      value={inst.name || ''}
+                      onChange={(e) => updateInstruction(index, 'name', e.target.value)}
+                      placeholder="Instruction name"
+                      disabled={isViewMode(mode)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      value={inst.description || ''}
+                      onChange={(e) => updateInstruction(index, 'description', e.target.value)}
+                      placeholder="Instruction description"
+                      disabled={isViewMode(mode)}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Visit Details
+                      </label>
+                      <select
+                        value={inst.visitDetails || 'before visit'}
+                        onChange={(e) => updateInstruction(index, 'visitDetails', e.target.value)}
+                        disabled={isViewMode(mode)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                      >
+                        <option value="before visit">Before Visit</option>
+                        <option value="after visit">After Visit</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Duration
+                      </label>
+                      <select
+                        value={inst.duration || 'hour'}
+                        onChange={(e) => updateInstruction(index, 'duration', e.target.value)}
+                        disabled={isViewMode(mode)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                      >
+                        <option value="hour">Hour</option>
+                        <option value="day">Day</option>
+                        <option value="week">Week</option>
+                        <option value="month">Month</option>
+                        <option value="year">Year</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        );
-        })}
+            );
+          })}
       </div>
     </div>
   );
@@ -607,7 +684,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Examination Name *</label>
         <Input
-          value={typeof formData.name === 'string' || typeof formData.name === 'number' ? formData.name : ''}
+          value={
+            typeof formData.name === 'string' || typeof formData.name === 'number'
+              ? formData.name
+              : ''
+          }
           onChange={(e) => handleInputChange('name', e.target.value)}
           placeholder="Enter examination name"
           disabled={mode === 'view'}
@@ -621,7 +702,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           Examination Description *
         </label>
         <textarea
-          value={typeof formData.description === 'string' || typeof formData.description === 'number' ? formData.description : ''}
+          value={
+            typeof formData.description === 'string' || typeof formData.description === 'number'
+              ? formData.description
+              : ''
+          }
           onChange={(e) => handleInputChange('description', e.target.value)}
           placeholder="Enter examination description"
           disabled={mode === 'view'}
@@ -650,7 +735,13 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
 
       // If medicines are already full objects, return them
       if (typeof meds[0] === 'object' && meds[0] !== null) {
-        return meds as Array<{ id: string; name: string; type: string; strength: string; unit: string }>;
+        return meds as Array<{
+          id: string;
+          name: string;
+          type: string;
+          strength: string;
+          unit: string;
+        }>;
       }
 
       // If medicines are IDs, filter from the medicines list
@@ -702,7 +793,12 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           'medicines',
           medsArray.filter(
             (medicine) =>
-              !(typeof medicine === 'object' && medicine !== null && 'id' in medicine && medicine.id === medicineId)
+              !(
+                typeof medicine === 'object' &&
+                medicine !== null &&
+                'id' in medicine &&
+                medicine.id === medicineId
+              )
           )
         );
       } else {
@@ -719,10 +815,14 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Package Name *</label>
           <Input
-            value={typeof formData.name === 'string' || typeof formData.name === 'number' ? formData.name : ''}
+            value={
+              typeof formData.name === 'string' || typeof formData.name === 'number'
+                ? formData.name
+                : ''
+            }
             onChange={(e) => handleInputChange('name', e.target.value)}
             placeholder="Enter package name"
-            disabled={mode === 'view'}
+            disabled={isViewMode(mode)}
             className={errors.name ? 'border-red-500' : ''}
           />
           {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
@@ -741,7 +841,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
               }}
               onFocus={() => setIsDropdownOpen(true)}
               placeholder="Search medicines..."
-              disabled={mode === 'view'}
+              disabled={isViewMode(mode)}
               className="w-full"
             />
 
@@ -765,9 +865,13 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
                           </div>
                           {(() => {
                             const currentMedicines = formData.medicines;
-                            const medsArray = Array.isArray(currentMedicines) ? currentMedicines : [];
+                            const medsArray = Array.isArray(currentMedicines)
+                              ? currentMedicines
+                              : [];
                             const isSelected =
-                              medsArray.length > 0 && typeof medsArray[0] === 'object' && medsArray[0] !== null
+                              medsArray.length > 0 &&
+                              typeof medsArray[0] === 'object' &&
+                              medsArray[0] !== null
                                 ? medsArray.some(
                                     (med) =>
                                       typeof med === 'object' &&
@@ -884,7 +988,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
   };
 
   const renderFooter = () => {
-    if (mode === 'view') {
+    if (isViewMode(mode)) {
       return (
         <div className="flex justify-end">
           <Button variant="primary" onClick={onClose}>
@@ -900,14 +1004,20 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           Cancel
         </Button>
         <Button variant="primary" onClick={handleSave} disabled={isLoading} loading={isLoading}>
-          {mode === 'create' ? 'Create' : 'Update'}
+          {isCreateMode(mode) ? 'Create' : 'Update'}
         </Button>
       </div>
     );
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={getModalTitle()} size="xl" footer={renderFooter()}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={getModalTitle()}
+      size="xl"
+      footer={renderFooter()}
+    >
       <div>{renderForm()}</div>
     </Modal>
   );

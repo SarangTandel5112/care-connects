@@ -19,6 +19,7 @@ import { MedicinePackageTemplateTable } from '@/modules/templates';
 import { TemplateModal } from '@/modules/templates';
 import { Button, ConfirmationModal } from '@/components/ui';
 import { PlusIcon } from '@/components/ui/icons';
+import { ModalMode } from '@/types/modal.types';
 import {
   useCreateAdviceTemplate,
   useCreateComplaintTemplate,
@@ -68,7 +69,7 @@ export default function TemplateTypePage() {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
+  const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.CREATE);
   const [selectedTemplate, setSelectedTemplate] = useState<AnyTemplate | null>(null);
 
   // Delete confirmation modal state
@@ -77,7 +78,7 @@ export default function TemplateTypePage() {
 
   const handleAddTemplate = () => {
     console.log('handleAddTemplate called', { currentType, paramsType: params.type });
-    setModalMode('create');
+    setModalMode(ModalMode.CREATE);
     setSelectedTemplate(null);
     setIsModalOpen(true);
   };
@@ -190,7 +191,9 @@ export default function TemplateTypePage() {
             await createComplaint.mutateAsync(cleanedData as unknown as CreateComplaintTemplate);
             break;
           case 'examination':
-            await createExamination.mutateAsync(cleanedData as unknown as CreateExaminationTemplate);
+            await createExamination.mutateAsync(
+              cleanedData as unknown as CreateExaminationTemplate
+            );
             break;
           case 'procedure':
             await createProcedure.mutateAsync(cleanedData as unknown as CreateProcedureTemplate);
@@ -199,7 +202,9 @@ export default function TemplateTypePage() {
             await createMedicine.mutateAsync(cleanedData as unknown as CreateMedicineTemplate);
             break;
           case 'medicine-package':
-            await createMedicinePackage.mutateAsync(cleanedData as unknown as CreateMedicinePackageTemplate);
+            await createMedicinePackage.mutateAsync(
+              cleanedData as unknown as CreateMedicinePackageTemplate
+            );
             break;
           default:
             throw new Error(`Unsupported template type: ${params.type}`);
@@ -213,19 +218,34 @@ export default function TemplateTypePage() {
             await updateAdvice.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
             break;
           case 'complaint':
-            await updateComplaint.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
+            await updateComplaint.mutateAsync({
+              data: updateData,
+              id: selectedTemplate!.id,
+            } as never);
             break;
           case 'examination':
-            await updateExamination.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
+            await updateExamination.mutateAsync({
+              data: updateData,
+              id: selectedTemplate!.id,
+            } as never);
             break;
           case 'procedure':
-            await updateProcedure.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
+            await updateProcedure.mutateAsync({
+              data: updateData,
+              id: selectedTemplate!.id,
+            } as never);
             break;
           case 'medicine':
-            await updateMedicine.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
+            await updateMedicine.mutateAsync({
+              data: updateData,
+              id: selectedTemplate!.id,
+            } as never);
             break;
           case 'medicine-package':
-            await updateMedicinePackage.mutateAsync({ data: updateData, id: selectedTemplate!.id } as never);
+            await updateMedicinePackage.mutateAsync({
+              data: updateData,
+              id: selectedTemplate!.id,
+            } as never);
             break;
           default:
             throw new Error(`Unsupported template type: ${params.type}`);
@@ -242,13 +262,13 @@ export default function TemplateTypePage() {
 
   const handleEditTemplate = (template: AnyTemplate) => {
     setSelectedTemplate(template);
-    setModalMode('edit');
+    setModalMode(ModalMode.EDIT);
     setIsModalOpen(true);
   };
 
   const handleViewTemplate = (template: AnyTemplate) => {
     setSelectedTemplate(template);
-    setModalMode('view');
+    setModalMode(ModalMode.VIEW);
     setIsModalOpen(true);
   };
 

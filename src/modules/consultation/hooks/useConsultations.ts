@@ -35,23 +35,33 @@ export const getDoctorsQueryKey = () => ['doctors', 'list'];
  * @returns React Query result with consultations array
  */
 export const useConsultations = (filters?: ConsultationFilters) => {
-  const queryParams = new URLSearchParams();
+  // Compute endpoint BEFORE calling hooks (to avoid conditional hook calls)
+  let endpoint: string;
 
-  if (filters) {
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (value instanceof Date) {
-          queryParams.append(key, value.toISOString().split('T')[0]); // YYYY-MM-DD
-        } else {
-          queryParams.append(key, String(value));
+  // If patientId is provided, use the /consultations/patient/:id endpoint
+  if (filters?.patientId) {
+    endpoint = `consultations/patient/${filters.patientId}`;
+  } else {
+    // Otherwise, use query parameters for other filters
+    const queryParams = new URLSearchParams();
+
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (value instanceof Date) {
+            queryParams.append(key, value.toISOString().split('T')[0]); // YYYY-MM-DD
+          } else {
+            queryParams.append(key, String(value));
+          }
         }
-      }
-    });
+      });
+    }
+
+    const queryString = queryParams.toString();
+    endpoint = queryString ? `consultations?${queryString}` : 'consultations';
   }
 
-  const queryString = queryParams.toString();
-  const endpoint = queryString ? `consultations?${queryString}` : 'consultations';
-
+  // Call hook unconditionally (required by Rules of Hooks)
   return useApiGet<Consultation[]>(getConsultationsQueryKey(filters), endpoint, {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes

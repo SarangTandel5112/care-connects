@@ -157,11 +157,24 @@ export interface CreatePrescription {
 // ==================== BILLING ====================
 
 /**
+ * Payment Status Enum - matches backend
+ */
+export enum PaymentStatus {
+  PENDING = 'Pending',
+  PAID = 'Paid',
+  PARTIALLY_PAID = 'Partially Paid',
+  FAILED = 'Failed',
+  REFUNDED = 'Refunded',
+  CANCELLED = 'Cancelled',
+}
+
+/**
  * Billing Information
  */
 export interface Billing {
   id?: string;
   consultationId?: string;
+  consultationDate?: Date; // Date of consultation
   procedureAmount?: number; // Auto-calculated from procedures
   consultationFee?: number;
   otherAmount?: number;
@@ -170,6 +183,8 @@ export interface Billing {
   applyGst?: boolean;
   tax?: number; // Auto-calculated (5% if applyGst is true)
   totalAmount?: number; // Auto-calculated
+  pendingAmount?: number; // Auto-calculated: totalAmount - sum of payments
+  paymentStatus?: PaymentStatus; // Current payment status
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -178,6 +193,7 @@ export interface Billing {
  * Create Billing DTO
  */
 export interface CreateBilling {
+  consultationDate?: Date;
   consultationFee?: number;
   otherAmount?: number;
   discount?: number;
@@ -190,12 +206,12 @@ export interface CreateBilling {
  * Payment Method Enum
  */
 export enum PaymentMethod {
-  CASH = 'cash',
-  CARD = 'card',
-  UPI = 'upi',
-  NET_BANKING = 'net_banking',
-  CHEQUE = 'cheque',
-  OTHER = 'other',
+  CASH = 'Cash',
+  CARD = 'Card',
+  UPI = 'UPI',
+  NET_BANKING = 'Net Banking',
+  CHEQUE = 'Cheque',
+  OTHER = 'Other',
 }
 
 /**
@@ -204,9 +220,11 @@ export enum PaymentMethod {
 export interface Payment {
   id?: string;
   billingId?: string;
-  amount: number;
-  paymentMethod: PaymentMethod;
-  note?: string;
+  amountPaid: number; // Matches backend 'amountPaid' field
+  modeOfPayment: string; // Matches backend 'modeOfPayment' field
+  paymentReference?: string; // Optional reference number
+  paymentDate?: Date;
+  paymentStatus?: PaymentStatus;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -215,9 +233,10 @@ export interface Payment {
  * Create Payment DTO
  */
 export interface CreatePayment {
-  amount: number;
-  paymentMethod: PaymentMethod;
-  note?: string;
+  amountPaid: number;
+  modeOfPayment: string;
+  paymentReference?: string;
+  paymentStatus?: PaymentStatus;
 }
 
 // ==================== MAIN CONSULTATION ====================

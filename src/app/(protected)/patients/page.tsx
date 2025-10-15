@@ -19,10 +19,11 @@ const PatientModal = lazy(() =>
 );
 import { Patient, CreatePatient, UpdatePatient } from '@/modules/patient';
 import { useCreatePatient, useUpdatePatient, useDeletePatient } from '@/modules/patient';
+import { ModalMode } from '@/types/modal.types';
 
 export default function PatientsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'view' | 'create' | 'edit'>('create');
+  const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.CREATE);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -38,20 +39,20 @@ export default function PatientsPage() {
   const isDeleting = deletePatient.isPending;
 
   const handleAddPatient = () => {
-    setModalMode('create');
+    setModalMode(ModalMode.CREATE);
     setSelectedPatient(null);
     setIsModalOpen(true);
   };
 
   const handleViewPatient = (patient: Patient) => {
     setSelectedPatient(patient);
-    setModalMode('view');
+    setModalMode(ModalMode.VIEW);
     setIsModalOpen(true);
   };
 
   const handleEditPatient = (patient: Patient) => {
     setSelectedPatient(patient);
-    setModalMode('edit');
+    setModalMode(ModalMode.EDIT);
     setIsModalOpen(true);
   };
 

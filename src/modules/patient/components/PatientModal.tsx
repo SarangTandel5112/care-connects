@@ -16,10 +16,11 @@ import {
   Gender,
   PatientGroup,
 } from '../types/patient.types';
+import { ModalMode, isCreateMode, isEditMode, isViewMode } from '@/types/modal.types';
 
 // Get validation schema based on mode
-const getValidationSchema = (mode: 'view' | 'create' | 'edit') => {
-  if (mode === 'view') {
+const getValidationSchema = (mode: ModalMode) => {
+  if (isViewMode(mode)) {
     // No validation for view mode
     return Yup.object({});
   }
@@ -54,7 +55,7 @@ const getValidationSchema = (mode: 'view' | 'create' | 'edit') => {
 interface PatientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  mode: 'view' | 'create' | 'edit';
+  mode: ModalMode;
   patient?: Patient;
   onSave?: (data: CreatePatient | UpdatePatient) => void;
   isLoading?: boolean;
@@ -70,13 +71,13 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
 }) => {
   // Get initial values based on mode (memoized)
   const initialValues = useMemo((): CreatePatient | UpdatePatient => {
-    if (mode === 'create') {
+    if (isCreateMode(mode)) {
       return {
         firstName: '',
         lastName: '',
         mobile: '',
       };
-    } else if (mode === 'edit' || mode === 'view') {
+    } else if (isEditMode(mode) || isViewMode(mode)) {
       const patientData = patient || ({} as Patient);
 
       const initialValues: CreatePatient | UpdatePatient = {
@@ -139,7 +140,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
   );
 
   const renderFooter = useCallback(() => {
-    if (mode === 'view') return null;
+    if (isViewMode(mode)) return null;
 
     return (
       <div className="flex justify-end space-x-2">
@@ -147,7 +148,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
           Cancel
         </Button>
         <Button type="submit" form="patient-form" loading={isLoading} disabled={isLoading}>
-          {mode === 'create' ? 'Create Patient' : 'Update Patient'}
+          {isCreateMode(mode) ? 'Create Patient' : 'Update Patient'}
         </Button>
       </div>
     );
@@ -181,7 +182,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                       <Input
                         {...field}
                         placeholder="Enter first name"
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                         className={errors.firstName && touched.firstName ? 'border-red-500' : ''}
                       />
                     )}
@@ -202,7 +203,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                       <Input
                         {...field}
                         placeholder="Enter last name"
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                         className={errors.lastName && touched.lastName ? 'border-red-500' : ''}
                       />
                     )}
@@ -241,7 +242,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                     {({ field }: FieldProps) => (
                       <select
                         {...field}
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       >
                         <option value="">Select gender</option>
@@ -270,7 +271,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                           )
                         }
                         placeholder="Enter age"
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                       />
                     )}
                   </Field>
@@ -295,7 +296,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                     {({ field }: FieldProps) => (
                       <select
                         {...field}
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       >
                         <option value="">Select group</option>
@@ -330,7 +331,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                           )
                         }
                         placeholder="Enter number of children"
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                       />
                     )}
                   </Field>
@@ -359,7 +360,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                       <Input
                         {...field}
                         placeholder="Enter location/address"
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                       />
                     )}
                   </Field>
@@ -375,7 +376,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
                     <Field name="city">
                       {({ field }: FieldProps) => (
-                        <Input {...field} placeholder="Enter city" disabled={mode === 'view'} />
+                        <Input {...field} placeholder="Enter city" disabled={isViewMode(mode)} />
                       )}
                     </Field>
                     <ErrorMessage name="city" component="p" className="text-red-500 text-xs mt-1" />
@@ -385,7 +386,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
                     <Field name="state">
                       {({ field }: FieldProps) => (
-                        <Input {...field} placeholder="Enter state" disabled={mode === 'view'} />
+                        <Input {...field} placeholder="Enter state" disabled={isViewMode(mode)} />
                       )}
                     </Field>
                     <ErrorMessage
@@ -401,7 +402,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
                     <Field name="country">
                       {({ field }: FieldProps) => (
-                        <Input {...field} placeholder="Enter country" disabled={mode === 'view'} />
+                        <Input {...field} placeholder="Enter country" disabled={isViewMode(mode)} />
                       )}
                     </Field>
                     <ErrorMessage
@@ -415,7 +416,11 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
                     <Field name="zipCode">
                       {({ field }: FieldProps) => (
-                        <Input {...field} placeholder="Enter ZIP code" disabled={mode === 'view'} />
+                        <Input
+                          {...field}
+                          placeholder="Enter ZIP code"
+                          disabled={isViewMode(mode)}
+                        />
                       )}
                     </Field>
                     <ErrorMessage
@@ -444,7 +449,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                       <Input
                         {...field}
                         placeholder="Who referred this patient?"
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                       />
                     )}
                   </Field>
@@ -473,7 +478,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                           setFieldValue('medicalConditions', newArray);
                         }}
                         placeholder="Enter medical conditions (comma-separated)"
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                       />
                     )}
                   </Field>
@@ -491,7 +496,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                       <textarea
                         {...field}
                         placeholder="Enter consent details"
-                        disabled={mode === 'view'}
+                        disabled={isViewMode(mode)}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />

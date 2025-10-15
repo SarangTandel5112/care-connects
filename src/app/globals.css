@@ -229,3 +229,58 @@ body {
 .status-info {
   @apply bg-blue-50 text-blue-700 border-blue-200;
 }
+
+/* Custom Scrollbar Styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+}
+
+.scrollbar-track-gray-100::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+/* Patient Details Page Specific Styles */
+.patient-details-container {
+  height: calc(100vh - 4rem);
+  /* Account for back button height */
+}
+
+.patient-sidebar {
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+.patient-content {
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+/* Sticky behavior for patient content */
+.patient-content-sticky {
+  position: sticky;
+  top: 1.5rem;
+  max-height: calc(100vh - 6rem);
+}

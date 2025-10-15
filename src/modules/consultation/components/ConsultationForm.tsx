@@ -10,7 +10,7 @@
  * - Real-time form updates with debouncing
  */
 
-import React, { useMemo, useCallback, useRef, useEffect, useState } from 'react';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import { Formik, Form, FormikProps } from 'formik';
 import { Button } from '@/components/ui';
 import { Tabs } from 'antd';
@@ -63,6 +63,7 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
       procedures: [],
       prescriptions: [],
       billing: {
+        consultationDate: new Date(),
         consultationFee: 0,
         otherAmount: 0,
         discount: 0,
@@ -96,34 +97,13 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
 
   // Cleanup timeout on unmount
   useEffect(() => {
+    const timeoutRef = debounceTimeoutRef.current;
     return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
+      if (timeoutRef) {
+        clearTimeout(timeoutRef);
       }
     };
   }, []);
-
-  // Handle form changes with debouncing for auto-calculations
-  const handleFormChange = useCallback(
-    (values: ConsultationFormValues, formik: FormikProps<ConsultationFormValues>) => {
-      // Clear existing timeout
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-
-      // Debounce the form change handler (300ms)
-      debounceTimeoutRef.current = setTimeout(() => {
-        // TODO: Implement auto-calculations here
-        // - Calculate procedure amounts based on quantity and unit cost
-        // - Calculate billing subtotal
-        // - Calculate GST if applicable
-        // - Calculate total amount
-        // For now, just update previous values
-        // setPreviousValues(values);
-      }, 300);
-    },
-    []
-  );
 
   // Handle form submission
   const handleSubmit = useCallback(

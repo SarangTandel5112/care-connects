@@ -135,27 +135,34 @@ export const ConsultationPreview: React.FC<ConsultationPreviewProps> = ({ formik
                 Basic Information
               </h3>
               <Table
-                dataSource={[
-                  {
-                    key: 'titles',
-                    chiefComplaints: 'Chief Complaints',
-                    clinicalExamination: 'Clinical Examination',
-                    adviceRecommendations: 'Advice & Recommendations',
-                  },
-                  {
-                    key: 'descriptions',
-                    chiefComplaints: values.complaints || '-',
-                    clinicalExamination: values.examination || '-',
-                    adviceRecommendations: values.advice || '-',
-                  },
-                ]}
+                dataSource={
+                  [
+                    {
+                      key: 'titles',
+                      chiefComplaints: 'Chief Complaints',
+                      clinicalExamination: 'Clinical Examination',
+                      adviceRecommendations: 'Advice & Recommendations',
+                    },
+                    {
+                      key: 'descriptions',
+                      chiefComplaints: values.complaints || '-',
+                      clinicalExamination: values.examination || '-',
+                      adviceRecommendations: values.advice || '-',
+                    },
+                  ] as Array<{
+                    key: string;
+                    chiefComplaints: string;
+                    clinicalExamination: string;
+                    adviceRecommendations: string;
+                  }>
+                }
                 columns={[
                   {
                     title: 'Chief Complaints',
                     dataIndex: 'chiefComplaints',
                     key: 'chiefComplaints',
                     width: '33%',
-                    render: (text: string, record: any) => (
+                    render: (text: string, record: { key: string }) => (
                       <div className="whitespace-pre-wrap">
                         {record.key === 'titles' ? (
                           <strong className="text-gray-800">{text}</strong>
@@ -170,7 +177,7 @@ export const ConsultationPreview: React.FC<ConsultationPreviewProps> = ({ formik
                     dataIndex: 'clinicalExamination',
                     key: 'clinicalExamination',
                     width: '33%',
-                    render: (text: string, record: any) => (
+                    render: (text: string, record: { key: string }) => (
                       <div className="whitespace-pre-wrap">
                         {record.key === 'titles' ? (
                           <strong className="text-gray-800">{text}</strong>
@@ -185,7 +192,7 @@ export const ConsultationPreview: React.FC<ConsultationPreviewProps> = ({ formik
                     dataIndex: 'adviceRecommendations',
                     key: 'adviceRecommendations',
                     width: '34%',
-                    render: (text: string, record: any) => (
+                    render: (text: string, record: { key: string }) => (
                       <div className="whitespace-pre-wrap">
                         {record.key === 'titles' ? (
                           <strong className="text-gray-800">{text}</strong>
@@ -441,25 +448,32 @@ export const ConsultationPreview: React.FC<ConsultationPreviewProps> = ({ formik
                   }))}
                   columns={[
                     {
+                      title: '#',
+                      key: 'index',
+                      width: '10%',
+                      align: 'center' as const,
+                      render: (_: unknown, __: unknown, index: number) => index + 1,
+                    },
+                    {
                       title: 'Payment Method',
-                      dataIndex: 'paymentMethod',
-                      key: 'paymentMethod',
+                      dataIndex: 'modeOfPayment',
+                      key: 'modeOfPayment',
                       render: (method: string) => <span className="font-medium">{method}</span>,
                     },
                     {
-                      title: 'Transaction ID',
-                      dataIndex: 'transactionId',
-                      key: 'transactionId',
-                      render: (txnId: string) => txnId || '-',
+                      title: 'Reference',
+                      dataIndex: 'paymentReference',
+                      key: 'paymentReference',
+                      render: (ref: string) => ref || '-',
                     },
                     {
                       title: 'Amount',
-                      dataIndex: 'amount',
-                      key: 'amount',
+                      dataIndex: 'amountPaid',
+                      key: 'amountPaid',
                       align: 'right' as const,
-                      width: '25%',
+                      width: '20%',
                       render: (amount: number) => (
-                        <span className="font-semibold text-green-700">₹{amount.toFixed(2)}</span>
+                        <span className="font-semibold text-green-700">₹{(amount || 0).toFixed(2)}</span>
                       ),
                     },
                   ]}
@@ -469,12 +483,15 @@ export const ConsultationPreview: React.FC<ConsultationPreviewProps> = ({ formik
                   summary={() => (
                     <Table.Summary>
                       <Table.Summary.Row className="bg-green-50">
-                        <Table.Summary.Cell index={0} colSpan={2}>
+                        <Table.Summary.Cell index={0} colSpan={3} align="right">
                           <strong className="text-base">Total Paid:</strong>
                         </Table.Summary.Cell>
                         <Table.Summary.Cell index={1} align="right">
                           <strong className="text-base text-green-700">
-                            ₹{values.payments.reduce((sum, p) => sum + p.amount, 0).toFixed(2)}
+                            ₹
+                            {values.payments
+                              .reduce((sum, p) => sum + (p.amountPaid || 0), 0)
+                              .toFixed(2)}
                           </strong>
                         </Table.Summary.Cell>
                       </Table.Summary.Row>
@@ -489,7 +506,8 @@ export const ConsultationPreview: React.FC<ConsultationPreviewProps> = ({ formik
                     <span className="font-bold text-xl text-red-700">
                       ₹
                       {(
-                        billingTotal - values.payments.reduce((sum, p) => sum + p.amount, 0)
+                        billingTotal -
+                        values.payments.reduce((sum, p) => sum + (p.amountPaid || 0), 0)
                       ).toFixed(2)}
                     </span>
                   </div>

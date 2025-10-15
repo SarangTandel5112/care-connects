@@ -30,6 +30,7 @@ import type {
 } from '@/modules/appointment/types/appointment.types';
 import { AppointmentModal } from '@/modules/appointment/components/AppointmentModal';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { ModalMode, isCreateMode, isEditMode } from '@/types/modal.types';
 
 interface AppointmentCalendarProps {
   /**
@@ -48,12 +49,12 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
   const [activeStatus, setActiveStatus] = useState('All');
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
-    mode: 'view' | 'create' | 'edit';
+    mode: ModalMode;
     appointment?: Appointment;
     prefilledTimes?: { start: Date; end: Date } | null;
   }>({
     isOpen: false,
-    mode: 'create',
+    mode: ModalMode.CREATE,
     appointment: undefined,
     prefilledTimes: null,
   });
@@ -166,7 +167,7 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
     if (originalAppointment) {
       setModalState({
         isOpen: true,
-        mode: 'edit',
+        mode: ModalMode.EDIT,
         appointment: originalAppointment,
         prefilledTimes: null,
       });
@@ -176,7 +177,7 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
   const handleAddAppointment = () => {
     setModalState({
       isOpen: true,
-      mode: 'create',
+      mode: ModalMode.CREATE,
       appointment: undefined,
       prefilledTimes: null,
     });
@@ -206,7 +207,7 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
     // Open modal with prefilled times
     setModalState({
       isOpen: true,
-      mode: 'create',
+      mode: ModalMode.CREATE,
       appointment: undefined,
       prefilledTimes: { start: startDate, end: endDate },
     });
@@ -215,20 +216,20 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
   const handleModalClose = () => {
     setModalState({
       isOpen: false,
-      mode: 'create',
+      mode: ModalMode.CREATE,
       appointment: undefined,
       prefilledTimes: null,
     });
   };
 
   const handleModalSave = (data: CreateAppointment | UpdateAppointment) => {
-    if (modalState.mode === 'create') {
+    if (isCreateMode(modalState.mode)) {
       createAppointment.mutate(data as CreateAppointment, {
         onSuccess: () => {
           handleModalClose();
         },
       });
-    } else if (modalState.mode === 'edit') {
+    } else if (isEditMode(modalState.mode)) {
       updateAppointment.mutate(
         { data: data as UpdateAppointment, id: modalState.appointment!.id },
         {
@@ -244,7 +245,7 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
     if (modalState.appointment) {
       setModalState({
         ...modalState,
-        mode: 'edit',
+        mode: ModalMode.EDIT,
       });
     }
   };
