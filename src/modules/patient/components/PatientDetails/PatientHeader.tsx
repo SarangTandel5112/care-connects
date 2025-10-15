@@ -20,9 +20,17 @@ interface PatientHeaderProps {
   patient: Patient;
   onEditClick?: () => void;
   onBackClick?: () => void;
+  onStartConsultation?: () => void;
+  onBookAppointment?: () => void;
 }
 
-export const PatientHeader: React.FC<PatientHeaderProps> = ({ patient, onEditClick, onBackClick }) => {
+export const PatientHeader: React.FC<PatientHeaderProps> = ({
+  patient,
+  onEditClick,
+  onBackClick,
+  onStartConsultation,
+  onBookAppointment,
+}) => {
   const initials = getInitials(patient.firstName, patient.lastName);
   const avatarColor = getAvatarColor(`${patient.firstName} ${patient.lastName}`);
   const age = patient.birthDate ? calculateAge(patient.birthDate) : null;
@@ -84,8 +92,9 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({ patient, onEditCli
             type="primary"
             icon={<CalendarOutlined />}
             block
-            size="large"
-            className="shadow-sm bg-green-600 hover:bg-green-700 border-green-600"
+            size="middle"
+            className="shadow-sm bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 border-0 font-medium h-9"
+            onClick={onStartConsultation}
           >
             Start Consultation
           </Button>
@@ -93,16 +102,17 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({ patient, onEditCli
             type="default"
             icon={<CalendarOutlined />}
             block
-            size="large"
-            className="shadow-sm"
+            size="middle"
+            className="shadow-sm hover:border-blue-500 hover:text-blue-600 font-medium h-9"
+            onClick={onBookAppointment}
           >
             Book Appointment
           </Button>
           <Button
             icon={<EditOutlined />}
             block
-            size="large"
-            className="shadow-sm"
+            size="middle"
+            className="shadow-sm hover:border-gray-400 hover:text-gray-700 font-medium h-9"
             onClick={onEditClick}
           >
             Edit Patient

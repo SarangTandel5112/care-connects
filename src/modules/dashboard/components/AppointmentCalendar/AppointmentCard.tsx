@@ -26,6 +26,7 @@ interface Appointment {
   id: string;
   time: string;
   startTime: string;
+  endTime: string;
   patient: Patient;
   doctor: Doctor;
   treatment: string;

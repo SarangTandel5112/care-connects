@@ -66,25 +66,35 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
     appointment: undefined,
   });
 
-  // Fetch appointments from API
-  const { data: allAppointments = [], isLoading, isError, error } = useAppointments();
+  // Calculate date range filters for API
+  const dateRangeFilters = useMemo(() => {
+    // Start of day
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    // End of day (next day at 00:00:00)
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+    endOfDay.setHours(0, 0, 0, 0);
+
+    return {
+      appointmentStartTime: startOfDay,
+      appointmentEndTime: endOfDay,
+    };
+  }, [selectedDate]);
+
+  // Fetch appointments from API with date filters
+  const { data: allAppointments = [], isLoading, isError, error } = useAppointments(dateRangeFilters);
 
   // Mutation hooks
   const createAppointment = useCreateAppointment();
   const updateAppointment = useUpdateAppointment();
   const deleteAppointment = useDeleteAppointment();
 
-  // Filter appointments by selected date
-  const appointmentsForDate = useMemo(() => {
-    return allAppointments.filter((appointment) => {
-      const appointmentDate = new Date(appointment.appointmentStartTime);
-      return appointmentDate.toDateString() === selectedDate.toDateString();
-    });
-  }, [allAppointments, selectedDate]);
-
   // Transform appointments to match AppointmentTimeline format
+  // API already returns filtered appointments based on date range
   const transformedAppointments = useMemo(() => {
-    return appointmentsForDate.map((appointment: Appointment) => {
+    return allAppointments.map((appointment: Appointment) => {
       const startTime = new Date(appointment.appointmentStartTime);
       const endTime = new Date(appointment.appointmentEndTime);
 
@@ -106,6 +116,7 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
         id: appointment.id,
         time: timeString, // Display time with range
         startTime: startTimeString, // For timeline grouping
+        endTime: endTimeString, // For filtering overlapping slots
         patient: {
           id: appointment.patient.id,
           firstName: appointment.patient.firstName,
@@ -119,26 +130,26 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
         status: appointment.status,
       };
     });
-  }, [appointmentsForDate]);
+  }, [allAppointments]);
 
   // Calculate status counts
   const statusCounts = useMemo(() => {
     const counts = {
-      All: appointmentsForDate.length,
+      All: allAppointments.length,
       Scheduled: 0,
       'Check In': 0,
       Consultation: 0,
       Completed: 0,
     };
 
-    appointmentsForDate.forEach((appointment) => {
+    allAppointments.forEach((appointment) => {
       if (appointment.status in counts) {
         counts[appointment.status as keyof typeof counts]++;
       }
     });
 
     return counts;
-  }, [appointmentsForDate]);
+  }, [allAppointments]);
 
   // Filter transformed appointments by active status
   const filteredTransformedAppointments = useMemo(() => {
@@ -161,7 +172,7 @@ export const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ classN
 
   const handleEdit = (transformedAppointment: any) => {
     // Find the original appointment by ID
-    const originalAppointment = appointmentsForDate.find(
+    const originalAppointment = allAppointments.find(
       (apt) => apt.id === transformedAppointment.id
     );
     if (originalAppointment) {

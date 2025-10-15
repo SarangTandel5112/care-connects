@@ -10,7 +10,8 @@ import React, { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Skeleton } from 'antd';
 import { usePatient } from '@/modules/consultation';
-import { ConsultationFormValues } from '@/modules/consultation';
+import { useUpdateAppointment } from '@/modules/appointment/hooks/useAppointments';
+import { UpdateAppointment } from '@/modules/appointment/types/appointment.types';
 
 // Code splitting: Lazy load the form component
 const ConsultationForm = lazy(() =>
@@ -32,9 +33,37 @@ export default function ConsultationsPage() {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(
     appointmentIdFromQuery
   );
+  const [hasUpdatedStatus, setHasUpdatedStatus] = useState(false);
 
   // Fetch patient data if patientId is provided (hook will only fetch if ID is truthy)
   const { data: patientData } = usePatient(selectedPatientId || '');
+
+  // Mutation hook for updating appointment status
+  const updateAppointment = useUpdateAppointment();
+
+  // Update appointment status to Consultation when appointmentId exists
+  useEffect(() => {
+    if (appointmentIdFromQuery && !hasUpdatedStatus) {
+      // Update appointment status to Consultation
+      updateAppointment.mutate(
+        {
+          id: appointmentIdFromQuery,
+          data: { status: 'Consultation' } as UpdateAppointment,
+        },
+        {
+          onSuccess: () => {
+            setHasUpdatedStatus(true);
+          },
+          onError: (error) => {
+            console.error('Failed to update appointment status:', error);
+            // Still mark as updated to prevent infinite retries
+            setHasUpdatedStatus(true);
+          },
+        }
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appointmentIdFromQuery, hasUpdatedStatus]);
 
   // Update selections when query params change
   useEffect(() => {
@@ -47,9 +76,17 @@ export default function ConsultationsPage() {
   }, [patientIdFromQuery, appointmentIdFromQuery]);
 
   const handleFormSubmitSuccess = useCallback(() => {
-    // Redirect to dashboard or consultations list after successful submission
+    // Update appointment status to Completed if appointmentId exists
+    if (appointmentIdFromQuery) {
+      updateAppointment.mutate({
+        id: appointmentIdFromQuery,
+        data: { status: 'Completed' } as UpdateAppointment,
+      });
+    }
+
+    // Redirect to dashboard
     router.push('/dashboard');
-  }, [router]);
+  }, [appointmentIdFromQuery, updateAppointment, router]);
 
   const handleCancel = useCallback(() => {
     router.push('/dashboard');

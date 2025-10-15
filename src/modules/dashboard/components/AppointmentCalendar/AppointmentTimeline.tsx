@@ -14,6 +14,7 @@ interface Appointment {
   id: string;
   time: string;
   startTime: string; // For grouping by time slot
+  endTime: string; // For filtering overlapping slots
   patient: {
     id: string;
     firstName: string;
@@ -72,6 +73,19 @@ export const AppointmentTimeline: React.FC<AppointmentTimelineProps> = ({
   onEdit,
   className = '',
 }) => {
+  // Filter appointments by active status using enum
+  const filteredAppointments = appointments.filter((apt) => {
+    if (activeStatus === 'All') return true;
+    // Map display status to enum values
+    const statusMap: Record<string, AppointmentStatus> = {
+      Scheduled: AppointmentStatus.SCHEDULED,
+      'Check In': AppointmentStatus.CHECK_IN,
+      Consultation: AppointmentStatus.CONSULTATION,
+      Completed: AppointmentStatus.COMPLETED,
+    };
+    return apt.status === statusMap[activeStatus];
+  });
+
   // Generate 30-minute time slots (9 AM to 6 PM)
   const generateTimeSlots = () => {
     const slots = [];
@@ -92,20 +106,45 @@ export const AppointmentTimeline: React.FC<AppointmentTimelineProps> = ({
     return slots;
   };
 
-  const timeSlots = generateTimeSlots();
+  // Helper function to parse time string to minutes
+  const parseTime = (timeStr: string) => {
+    const [time, period] = timeStr.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) {
+      hour24 = hours + 12;
+    } else if (period === 'AM' && hours === 12) {
+      hour24 = 0;
+    }
+    return hour24 * 60 + minutes;
+  };
 
-  // Filter appointments by active status using enum
-  const filteredAppointments = appointments.filter((apt) => {
-    if (activeStatus === 'All') return true;
-    // Map display status to enum values
-    const statusMap: Record<string, AppointmentStatus> = {
-      Scheduled: AppointmentStatus.SCHEDULED,
-      'Check In': AppointmentStatus.CHECK_IN,
-      Consultation: AppointmentStatus.CONSULTATION,
-      Completed: AppointmentStatus.COMPLETED,
-    };
-    return apt.status === statusMap[activeStatus];
-  });
+  // Check if a time slot falls within any appointment duration
+  const isTimeSlotOccupied = (timeSlot: string) => {
+    const slotMinutes = parseTime(timeSlot);
+    return filteredAppointments.some((apt) => {
+      const startMinutes = parseTime(apt.startTime);
+      const endMinutes = parseTime(apt.endTime);
+      // A slot is occupied if it falls after the start and before the end (exclusive of start time)
+      return slotMinutes > startMinutes && slotMinutes < endMinutes;
+    });
+  };
+
+  const baseTimeSlots = generateTimeSlots();
+
+  // Filter out base slots that are occupied by appointments
+  const availableBaseSlots = baseTimeSlots.filter((slot) => !isTimeSlotOccupied(slot));
+
+  // Add appointment times that don't fall on 30-minute slots
+  const appointmentTimes = filteredAppointments.map((apt) => apt.startTime);
+  const uniqueAppointmentTimes = [...new Set(appointmentTimes)];
+
+  // Merge available base slots with appointment times and sort
+  const allTimeSlots = [...new Set([...availableBaseSlots, ...uniqueAppointmentTimes])].sort(
+    (a, b) => parseTime(a) - parseTime(b)
+  );
+
+  const timeSlots = allTimeSlots;
 
   // Group appointments by start time slot
   const appointmentsByTime = filteredAppointments.reduce(

@@ -237,9 +237,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
                                 size="small"
                                 icon={<DeleteOutlined />}
                                 onClick={() => remove(index)}
-                              >
-                                Remove
-                              </Button>
+                              />
                             </div>
 
                             <div className="grid grid-cols-3 gap-2">

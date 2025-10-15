@@ -9,7 +9,7 @@
 
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, lazy, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Tabs, Spin, Alert, Button } from 'antd';
 import { usePatient, useUpdatePatient } from '@/modules/patient/hooks/usePatients';
@@ -21,6 +21,20 @@ import { ReportsTab } from '@/modules/patient/components/PatientDetails/ReportsT
 import { PatientModal } from '@/modules/patient/components/PatientModal';
 import { UpdatePatient, CreatePatient } from '@/modules/patient/types/patient.types';
 import { PatientModalState, ModalMode } from '@/types/modal.types';
+import {
+  useCreateAppointment,
+  useUpdateAppointment,
+} from '@/modules/appointment/hooks/useAppointments';
+import {
+  Appointment,
+  CreateAppointment,
+  UpdateAppointment as AppointmentUpdate,
+} from '@/modules/appointment/types/appointment.types';
+
+// Lazy load AppointmentModal
+const AppointmentModal = lazy(() =>
+  import('@/modules/appointment').then((module) => ({ default: module.AppointmentModal }))
+);
 
 export default function PatientDetailsPage() {
   const params = useParams();
@@ -32,12 +46,21 @@ export default function PatientDetailsPage() {
     mode: ModalMode.EDIT,
     patient: undefined,
   });
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [appointmentModalMode, setAppointmentModalMode] = useState<ModalMode>(ModalMode.CREATE);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>(
+    undefined
+  );
 
   // Fetch patient data
   const { data: patient, isLoading, isError, error } = usePatient(patientId);
 
   // Update patient mutation
   const updatePatient = useUpdatePatient();
+
+  // Appointment mutations
+  const createAppointment = useCreateAppointment();
+  const updateAppointmentMutation = useUpdateAppointment();
 
   // Handle back navigation
   const handleBack = () => {
@@ -71,6 +94,46 @@ export default function PatientDetailsPage() {
       }
     },
     [updatePatient, patientId, handleModalClose]
+  );
+
+  // Handle Start Consultation
+  const handleStartConsultation = useCallback(() => {
+    router.push(`/consultations?patientId=${patientId}`);
+  }, [router, patientId]);
+
+  // Handle Book Appointment
+  const handleBookAppointment = useCallback(() => {
+    setSelectedAppointment(undefined);
+    setAppointmentModalMode(ModalMode.CREATE);
+    setIsAppointmentModalOpen(true);
+  }, []);
+
+  // Handle Appointment Modal Close
+  const handleAppointmentModalClose = useCallback(() => {
+    setIsAppointmentModalOpen(false);
+    setSelectedAppointment(undefined);
+  }, []);
+
+  // Handle Appointment Save
+  const handleAppointmentSave = useCallback(
+    async (data: CreateAppointment | AppointmentUpdate) => {
+      try {
+        if (appointmentModalMode === 'create') {
+          await createAppointment.mutateAsync(data as CreateAppointment);
+        } else if (appointmentModalMode === 'edit' && selectedAppointment) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+          const { id, createdAt, updatedAt, ...updateData } = data as any;
+          await updateAppointmentMutation.mutateAsync({
+            data: updateData as AppointmentUpdate,
+            id: selectedAppointment.id,
+          });
+        }
+        setIsAppointmentModalOpen(false);
+      } catch {
+        // Error handling is done by API hooks with toast messages
+      }
+    },
+    [appointmentModalMode, selectedAppointment, createAppointment, updateAppointmentMutation]
   );
 
   // Loading state
@@ -133,12 +196,18 @@ export default function PatientDetailsPage() {
     <div className="flex h-full bg-gray-50 gap-6">
       {/* Left Sidebar - Patient Info */}
       <div className="w-80 flex-shrink-0 overflow-y-auto">
-        <PatientHeader patient={patient} onEditClick={handleEditClick} onBackClick={handleBack} />
+        <PatientHeader
+          patient={patient}
+          onEditClick={handleEditClick}
+          onBackClick={handleBack}
+          onStartConsultation={handleStartConsultation}
+          onBookAppointment={handleBookAppointment}
+        />
       </div>
 
       {/* Right Content - Tabs */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-white rounded-lg shadow flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden ">
+        <div className="bg-white rounded-lg shadow flex-1 flex flex-col overflow-hidden px-3">
           <Tabs
             activeKey={activeTab}
             onChange={setActiveTab}
@@ -158,6 +227,20 @@ export default function PatientDetailsPage() {
         onSave={handleModalSave}
         isLoading={updatePatient.isPending}
       />
+
+      {/* Appointment Modal */}
+      <Suspense fallback={null}>
+        <AppointmentModal
+          isOpen={isAppointmentModalOpen}
+          onClose={handleAppointmentModalClose}
+          mode={appointmentModalMode}
+          appointment={selectedAppointment}
+          onSave={handleAppointmentSave}
+          isLoading={createAppointment.isPending || updateAppointmentMutation.isPending}
+          prefilledTimes={null}
+          prefilledPatientId={patientId}
+        />
+      </Suspense>
     </div>
   );
 }

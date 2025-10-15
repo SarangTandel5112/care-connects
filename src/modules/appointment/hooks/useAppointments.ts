@@ -41,7 +41,8 @@ export const useAppointments = (filters?: AppointmentSearchFilters) => {
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         if (value instanceof Date) {
-          queryParams.append(key, value.toISOString().split('T')[0]); // YYYY-MM-DD
+          // Use full ISO string to include date and time
+          queryParams.append(key, value.toISOString());
         } else {
           queryParams.append(key, String(value));
         }

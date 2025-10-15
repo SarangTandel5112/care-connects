@@ -19,6 +19,7 @@ import {
   Doctor,
 } from '../types/appointment.types';
 import { usePatients, useDoctors } from '../hooks/useAppointments';
+import { usePatient } from '@/modules/patient/hooks/usePatients';
 import { ModalMode, isCreateMode, isEditMode, isViewMode } from '@/types/modal.types';
 
 // Helper function to format date for datetime-local input (preserves local timezone)
@@ -62,6 +63,7 @@ interface AppointmentModalProps {
   onDelete?: () => void;
   isLoading?: boolean;
   prefilledTimes?: { start: Date; end: Date } | null;
+  prefilledPatientId?: string;
 }
 
 const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
@@ -74,6 +76,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
   onDelete,
   isLoading = false,
   prefilledTimes,
+  prefilledPatientId,
 }) => {
   // State for searchable dropdowns
   const [patientSearch, setPatientSearch] = useState('');
@@ -87,11 +90,17 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
   const { data: patients = [], isLoading: isLoadingPatients } = usePatients(patientSearch);
   const { data: doctors = [], isLoading: isLoadingDoctors } = useDoctors();
 
-  // Initialize selected patient and doctor from appointment data
+  // Fetch prefilled patient data if prefilledPatientId is provided
+  const { data: prefilledPatient } = usePatient(prefilledPatientId || '');
+
+  // Initialize selected patient and doctor from appointment data or prefilled patient
   useEffect(() => {
     if (isOpen && appointment) {
       setSelectedPatient(appointment.patient || null);
       setSelectedDoctor(appointment.doctor || null);
+    } else if (isOpen && prefilledPatient && !appointment) {
+      // Set prefilled patient when opening in create mode
+      setSelectedPatient(prefilledPatient);
     } else if (!isOpen) {
       // Reset state when modal closes
       setSelectedPatient(null);
@@ -101,7 +110,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
       setIsPatientDropdownOpen(false);
       setIsDoctorDropdownOpen(false);
     }
-  }, [isOpen, appointment]);
+  }, [isOpen, appointment, prefilledPatient]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -130,7 +139,7 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
         appointmentStartTime: prefilledTimes?.start || new Date(),
         appointmentEndTime: prefilledTimes?.end || new Date(Date.now() + 30 * 60 * 1000), // 30 minutes later
         treatment: '',
-        patientId: '',
+        patientId: prefilledPatientId || '',
         doctorId: '',
       };
     } else if (isEditMode(mode) || isViewMode(mode)) {
@@ -150,10 +159,10 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
       appointmentStartTime: new Date(),
       appointmentEndTime: new Date(),
       treatment: '',
-      patientId: '',
+      patientId: prefilledPatientId || '',
       doctorId: '',
     };
-  }, [mode, appointment, prefilledTimes]);
+  }, [mode, appointment, prefilledTimes, prefilledPatientId]);
 
   const title = useMemo(() => {
     switch (mode) {
@@ -171,8 +180,12 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
   const handleSubmit = useCallback(
     (values: CreateAppointment | UpdateAppointment) => {
       // Clean up the data before submitting
+      // Remove id, createdAt, updatedAt fields (these should not be sent in update requests)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, createdAt, updatedAt, ...rest } = values as any;
+
       const cleanedValues = Object.fromEntries(
-        Object.entries(values).map(([key, value]) => [
+        Object.entries(rest).map(([key, value]) => [
           key,
           value === null || value === undefined || value === '' ? undefined : value,
         ])
@@ -340,34 +353,6 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
               </div>
             </div>
 
-            {/* Additional Info Section (only in view mode) */}
-            {isViewMode(mode) && appointment && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
-                  <CalendarOutlined className="mr-2 text-gray-600" />
-                  Appointment Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Appointment ID
-                    </label>
-                    <div className="px-3 py-2 bg-gray-100 rounded-md text-sm text-gray-900">
-                      {appointment.id}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Created At
-                    </label>
-                    <div className="px-3 py-2 bg-gray-100 rounded-md text-sm text-gray-900">
-                      {new Date(appointment.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Participants Section */}
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
@@ -517,7 +502,6 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
       handleSubmit,
       selectedPatient,
       selectedDoctor,
-      appointment,
       patientSearch,
       doctorSearch,
       isPatientDropdownOpen,
