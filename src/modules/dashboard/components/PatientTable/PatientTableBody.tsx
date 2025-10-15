@@ -5,7 +5,10 @@
  * Following Single Responsibility Principle
  */
 
+'use client';
+
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import type { Patient } from '@/types/patient';
 import { Button } from '@/components/ui';
 import { UsersIcon, EyeIcon, EditIcon, TrashIcon } from '@/components/ui/icons';
@@ -26,6 +29,8 @@ interface PatientTableBodyProps {
  * Clean, professional design suitable for medical applications
  */
 export const PatientTableBody: React.FC<PatientTableBodyProps> = ({ patients, className = '' }) => {
+  const router = useRouter();
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -47,8 +52,7 @@ export const PatientTableBody: React.FC<PatientTableBodyProps> = ({ patients, cl
   };
 
   const handleView = (patientId: string) => {
-    // TODO: Implement view patient details
-    console.log('View patient:', patientId);
+    router.push(`/patients/${patientId}`);
   };
 
   const handleEdit = (patientId: string) => {

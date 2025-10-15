@@ -6,6 +6,7 @@
  */
 
 import React, { useState, lazy, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, ConfirmationModal } from '@/components/ui';
 import { UserAddOutlined } from '@ant-design/icons';
 import { Skeleton } from 'antd';
@@ -22,6 +23,7 @@ import { useCreatePatient, useUpdatePatient, useDeletePatient } from '@/modules/
 import { ModalMode } from '@/types/modal.types';
 
 export default function PatientsPage() {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.CREATE);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -45,9 +47,8 @@ export default function PatientsPage() {
   };
 
   const handleViewPatient = (patient: Patient) => {
-    setSelectedPatient(patient);
-    setModalMode(ModalMode.VIEW);
-    setIsModalOpen(true);
+    // Navigate to patient details page
+    router.push(`/patients/${patient.id}`);
   };
 
   const handleEditPatient = (patient: Patient) => {
