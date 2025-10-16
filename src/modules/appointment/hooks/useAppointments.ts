@@ -145,6 +145,22 @@ export const useUpdateAppointment = () => {
   });
 };
 
+/**
+ * Update appointment without showing success toast
+ * Useful for silent background updates (e.g., status changes during consultation)
+ */
+export const useUpdateAppointmentSilent = () => {
+  const queryClient = useQueryClient();
+  return useApiPost<Appointment, { data: UpdateAppointment; id: string }>('appointments', 'PATCH', {
+    // No successMessage - silent update
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getAppointmentsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: ['appointments'] }); // Invalidate all appointments
+    },
+    constructUrl: (variables) => `appointments/${variables.id}`,
+  });
+};
+
 export const useDeleteAppointment = () => {
   const queryClient = useQueryClient();
   return useApiPost<void, string>('appointments', 'DELETE', {

@@ -4,6 +4,7 @@
  */
 
 export { ConsultationForm } from './ConsultationForm';
+export { ConsultationDetails } from './ConsultationDetails';
 export { PatientSelectionSection } from './PatientSelectionSection';
 export { BasicInfoSection } from './BasicInfoSection';
 export { ToothExaminationSection } from './ToothExaminationSection';

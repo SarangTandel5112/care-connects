@@ -68,6 +68,11 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
         otherAmount: 0,
         discount: 0,
         applyGst: false,
+        // Initialize calculated fields with default values
+        procedureAmount: 0,
+        subTotal: 0,
+        tax: 0,
+        totalAmount: 0,
       },
       payments: [],
     }),
@@ -238,7 +243,7 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
                   loading={createConsultation.isPending}
                   disabled={createConsultation.isPending || !formik.isValid}
                 >
-                  Create Consultation
+                  Save Consultation
                 </Button>
               </div>
             </Form>
