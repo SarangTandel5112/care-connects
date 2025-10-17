@@ -4,6 +4,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
 import { AuthRehydration } from '@/components/AuthRehydration';
+import { MedicalConditionsLoader } from '@/components/MedicalConditionsLoader';
 
 /**
  * Store Provider Props Interface
@@ -33,6 +34,7 @@ const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   return (
     <Provider store={store}>
       <AuthRehydration />
+      <MedicalConditionsLoader />
       {children}
     </Provider>
   );

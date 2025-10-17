@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import userReducer from './slices/userSlice';
 import authReducer from './slices/authSlice';
+import medicalConditionsReducer from './slices/medicalConditionsSlice';
 
 /**
  * Redux Store Configuration
@@ -8,12 +9,14 @@ import authReducer from './slices/authSlice';
  * Combines all slice reducers and configures the store with:
  * - User state management
  * - Authentication state management
+ * - Medical conditions data (cached)
  * - Redux DevTools (in development)
  */
 export const store = configureStore({
   reducer: {
     user: userReducer,
     auth: authReducer,
+    medicalConditions: medicalConditionsReducer,
   },
   // Enable Redux DevTools in development
   devTools: process.env.NODE_ENV !== 'production',

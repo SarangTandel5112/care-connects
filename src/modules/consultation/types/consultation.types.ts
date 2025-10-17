@@ -198,6 +198,11 @@ export interface CreateBilling {
   otherAmount?: number;
   discount?: number;
   applyGst?: boolean;
+  // Calculated fields required by backend validation
+  procedureAmount?: number;
+  subTotal?: number;
+  tax?: number;
+  totalAmount?: number;
 }
 
 // ==================== PAYMENT ====================

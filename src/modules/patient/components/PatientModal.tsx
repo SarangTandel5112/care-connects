@@ -7,7 +7,10 @@ import React, { useMemo, useCallback, memo } from 'react';
 import { Formik, Form, Field, ErrorMessage, FieldProps } from 'formik';
 import { Button, Modal } from '@/components/ui';
 import { Input } from '@/components/ui';
+import { Select } from 'antd';
 import { UserOutlined, IdcardOutlined, HomeOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { useAppSelector } from '@/store/hooks';
+import { selectMedicalConditions } from '@/store/slices/medicalConditionsSlice';
 import * as Yup from 'yup';
 import {
   Patient,
@@ -69,6 +72,9 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
   onSave,
   isLoading = false,
 }) => {
+  // Get medical conditions from Redux store using selector
+  const medicalConditions = useAppSelector(selectMedicalConditions);
+
   // Get initial values based on mode (memoized)
   const initialValues = useMemo((): CreatePatient | UpdatePatient => {
     if (isCreateMode(mode)) {
@@ -466,19 +472,21 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
                   </label>
                   <Field name="medicalConditions">
                     {({ field }: FieldProps) => (
-                      <Input
-                        value={field.value?.join(', ') || ''}
-                        onChange={(e) => {
-                          const newArray = e.target.value
-                            ? e.target.value
-                                .split(',')
-                                .map((item) => item.trim())
-                                .filter((item) => item)
-                            : [];
-                          setFieldValue('medicalConditions', newArray);
-                        }}
-                        placeholder="Enter medical conditions (comma-separated)"
+                      <Select
+                        mode="tags"
+                        style={{ width: '100%' }}
+                        placeholder="Select or type medical conditions"
+                        value={field.value || []}
+                        onChange={(value) => setFieldValue('medicalConditions', value)}
                         disabled={isViewMode(mode)}
+                        options={
+                          Array.isArray(medicalConditions)
+                            ? medicalConditions.map((condition) => ({
+                                label: condition.name,
+                                value: condition.name,
+                              }))
+                            : []
+                        }
                       />
                     )}
                   </Field>
@@ -514,7 +522,7 @@ const PatientModalComponent: React.FC<PatientModalProps> = ({
         )}
       </Formik>
     ),
-    [initialValues, mode, handleSubmit]
+    [initialValues, mode, handleSubmit, medicalConditions]
   );
 
   return (

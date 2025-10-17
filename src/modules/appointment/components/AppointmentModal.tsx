@@ -180,18 +180,20 @@ const AppointmentModalComponent: React.FC<AppointmentModalProps> = ({
   const handleSubmit = useCallback(
     (values: CreateAppointment | UpdateAppointment) => {
       // Clean up the data before submitting
-      // Remove id, createdAt, updatedAt fields (these should not be sent in update requests)
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, createdAt, updatedAt, ...rest } = values as any;
+      const cleanedValues: Record<string, unknown> = {};
 
-      const cleanedValues = Object.fromEntries(
-        Object.entries(rest).map(([key, value]) => [
-          key,
-          value === null || value === undefined || value === '' ? undefined : value,
-        ])
-      );
+      Object.entries(values).forEach(([key, value]) => {
+        // Skip id, createdAt, updatedAt fields (these should not be sent in update requests)
+        if (key === 'id' || key === 'createdAt' || key === 'updatedAt') {
+          return;
+        }
+        // Only include non-empty values
+        if (value !== null && value !== undefined && value !== '') {
+          cleanedValues[key] = value;
+        }
+      });
 
-      onSave?.(cleanedValues as CreateAppointment | UpdateAppointment);
+      onSave?.(cleanedValues as unknown as CreateAppointment | UpdateAppointment);
     },
     [onSave]
   );

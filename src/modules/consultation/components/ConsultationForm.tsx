@@ -68,7 +68,7 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
         otherAmount: 0,
         discount: 0,
         applyGst: false,
-        // Initialize calculated fields with default values
+        // Calculated fields required by backend validation
         procedureAmount: 0,
         subTotal: 0,
         tax: 0,
