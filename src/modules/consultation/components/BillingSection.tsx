@@ -9,7 +9,7 @@
  * - Real-time total calculation
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Field, FieldProps, FormikProps, FieldArray } from 'formik';
 import { InputNumber, Switch, Card, Divider, Button, Select, Input } from 'antd';
 import {
@@ -18,6 +18,7 @@ import {
   CalculatorOutlined,
   PlusOutlined,
   DeleteOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import { ConsultationFormValues, PaymentMethod, PaymentStatus } from '../types/consultation.types';
 
@@ -26,6 +27,8 @@ interface BillingSectionProps {
 }
 
 export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
+  const [editingPaymentIndex, setEditingPaymentIndex] = useState<number | null>(null);
+
   // Calculate procedure amount from procedures
   const procedureAmount = useMemo(() => {
     return formik.values.procedures.reduce((total, procedure) => {
@@ -216,105 +219,100 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
             </div>
 
             <FieldArray name="payments">
-              {({ remove }) => (
+              {() => (
                 <div className="space-y-4">
                   {formik.values.payments.length > 0 ? (
                     <>
-                      {/* Payment Input Forms */}
-                      <div className="space-y-3">
-                        {formik.values.payments.map((payment, index) => (
-                          <div
-                            key={index}
-                            className="p-3 bg-gray-50 rounded border border-gray-200 space-y-3"
-                          >
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium text-gray-700">
-                                Payment #{index + 1}
-                              </span>
-                              <Button
-                                type="text"
-                                danger
-                                size="small"
-                                icon={<DeleteOutlined />}
-                                onClick={() => remove(index)}
-                              />
+                      {/* Payment Edit Form (Only show when editing) */}
+                      {editingPaymentIndex !== null && (
+                        <div className="p-4 bg-blue-50 rounded border-2 border-blue-300 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-semibold text-blue-900">
+                              Editing Payment #{editingPaymentIndex + 1}
+                            </span>
+                            <Button
+                              type="default"
+                              size="small"
+                              onClick={() => setEditingPaymentIndex(null)}
+                            >
+                              Done
+                            </Button>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-3">
+                            {/* Amount Paid */}
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Amount <span className="text-red-500">*</span>
+                              </label>
+                              <Field name={`payments.${editingPaymentIndex}.amountPaid`}>
+                                {({ field }: FieldProps) => (
+                                  <InputNumber
+                                    {...field}
+                                    value={field.value || 0}
+                                    onChange={(value) =>
+                                      formik.setFieldValue(`payments.${editingPaymentIndex}.amountPaid`, value || 0)
+                                    }
+                                    min={0}
+                                    max={pendingAmount + (formik.values.payments[editingPaymentIndex]?.amountPaid || 0)}
+                                    precision={2}
+                                    className="w-full"
+                                    prefix="₹"
+                                    size="middle"
+                                  />
+                                )}
+                              </Field>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2">
-                              {/* Amount Paid */}
-                              <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
-                                  Amount <span className="text-red-500">*</span>
-                                </label>
-                                <Field name={`payments.${index}.amountPaid`}>
-                                  {({ field }: FieldProps) => (
-                                    <InputNumber
-                                      {...field}
-                                      value={field.value || 0}
-                                      onChange={(value) =>
-                                        formik.setFieldValue(`payments.${index}.amountPaid`, value || 0)
-                                      }
-                                      min={0}
-                                      max={pendingAmount + (payment.amountPaid || 0)}
-                                      precision={2}
-                                      className="w-full"
-                                      prefix="₹"
-                                      size="small"
-                                    />
-                                  )}
-                                </Field>
-                              </div>
+                            {/* Mode of Payment */}
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Method <span className="text-red-500">*</span>
+                              </label>
+                              <Field name={`payments.${editingPaymentIndex}.modeOfPayment`}>
+                                {({ field }: FieldProps) => (
+                                  <Select
+                                    {...field}
+                                    value={field.value || PaymentMethod.CASH}
+                                    onChange={(value) =>
+                                      formik.setFieldValue(`payments.${editingPaymentIndex}.modeOfPayment`, value)
+                                    }
+                                    className="w-full"
+                                    size="middle"
+                                    options={Object.values(PaymentMethod).map((method) => ({
+                                      label: method,
+                                      value: method,
+                                    }))}
+                                  />
+                                )}
+                              </Field>
+                            </div>
 
-                              {/* Mode of Payment */}
-                              <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
-                                  Method <span className="text-red-500">*</span>
-                                </label>
-                                <Field name={`payments.${index}.modeOfPayment`}>
-                                  {({ field }: FieldProps) => (
-                                    <Select
-                                      {...field}
-                                      value={field.value || PaymentMethod.CASH}
-                                      onChange={(value) =>
-                                        formik.setFieldValue(`payments.${index}.modeOfPayment`, value)
-                                      }
-                                      className="w-full"
-                                      size="small"
-                                      options={Object.values(PaymentMethod).map((method) => ({
-                                        label: method,
-                                        value: method,
-                                      }))}
-                                    />
-                                  )}
-                                </Field>
-                              </div>
-
-                              {/* Payment Reference */}
-                              <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
-                                  Reference
-                                </label>
-                                <Field name={`payments.${index}.paymentReference`}>
-                                  {({ field }: FieldProps) => (
-                                    <Input
-                                      {...field}
-                                      value={field.value || ''}
-                                      onChange={(e) =>
-                                        formik.setFieldValue(
-                                          `payments.${index}.paymentReference`,
-                                          e.target.value
-                                        )
-                                      }
-                                      placeholder="Ref #"
-                                      size="small"
-                                    />
-                                  )}
-                                </Field>
-                              </div>
+                            {/* Payment Reference */}
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Reference
+                              </label>
+                              <Field name={`payments.${editingPaymentIndex}.paymentReference`}>
+                                {({ field }: FieldProps) => (
+                                  <Input
+                                    {...field}
+                                    value={field.value || ''}
+                                    onChange={(e) =>
+                                      formik.setFieldValue(
+                                        `payments.${editingPaymentIndex}.paymentReference`,
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Ref #"
+                                    size="middle"
+                                  />
+                                )}
+                              </Field>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      )}
 
                       {/* Payment Table Display */}
                       <div className="mt-4 border border-gray-200 rounded overflow-hidden">
@@ -333,6 +331,9 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
                               <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">
                                 Reference
                               </th>
+                              <th className="px-3 py-2 text-center text-xs font-semibold text-gray-700">
+                                Actions
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
@@ -346,6 +347,29 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
                                 <td className="px-3 py-2 text-gray-600 text-xs">
                                   {payment.paymentReference || '-'}
                                 </td>
+                                <td className="px-3 py-2 text-center">
+                                  <div className="flex justify-center gap-1">
+                                    <Button
+                                      type="text"
+                                      size="small"
+                                      icon={<EditOutlined />}
+                                      onClick={() => setEditingPaymentIndex(index)}
+                                      className="text-blue-600 hover:text-blue-700"
+                                    />
+                                    <Button
+                                      type="text"
+                                      size="small"
+                                      danger
+                                      icon={<DeleteOutlined />}
+                                      onClick={() => {
+                                        if (window.confirm('Are you sure you want to delete this payment record?')) {
+                                          const newPayments = formik.values.payments.filter((_, i) => i !== index);
+                                          formik.setFieldValue('payments', newPayments);
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                </td>
                               </tr>
                             ))}
                             <tr className="bg-blue-50 font-semibold">
@@ -353,7 +377,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({ formik }) => {
                                 Total
                               </td>
                               <td className="px-3 py-2 text-blue-700">₹{totalPaid.toFixed(2)}</td>
-                              <td className="px-3 py-2" colSpan={2}></td>
+                              <td className="px-3 py-2" colSpan={3}></td>
                             </tr>
                           </tbody>
                         </table>

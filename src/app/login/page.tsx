@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AnimatedBackground, LoginHeader, LoginForm, LoginFooter } from '@/modules/auth';
 import { tokenStorage } from '@/utils/token';
 import { pageVariants, cardVariants } from '@/utils/animations';
-import { DebugAuth } from '@/components/DebugAuth';
 
 /**
  * Login Page Component

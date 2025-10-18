@@ -40,9 +40,12 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   }
 
   if (!isAuthenticated) {
-    console.log('-=------------');
-
-    return null; //TODO: Will redirect to login
+    // Show loading while redirect happens
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (

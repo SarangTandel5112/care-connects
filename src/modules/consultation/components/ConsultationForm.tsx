@@ -10,10 +10,10 @@
  * - Real-time form updates with debouncing
  */
 
-import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import { Formik, Form, FormikProps } from 'formik';
 import { Button } from '@/components/ui';
-import { Tabs } from 'antd';
+import { Tabs, message, Modal, Progress } from 'antd';
 import * as Yup from 'yup';
 import { CreateConsultation, ConsultationFormValues } from '../types/consultation.types';
 import { useCreateConsultation } from '../hooks/useConsultations';
@@ -22,11 +22,16 @@ import { ToothExaminationSection } from './ToothExaminationSection';
 import { ProceduresSection } from './ProceduresSection';
 import { PrescriptionsSection } from './PrescriptionsSection';
 import { BillingSection } from './BillingSection';
+import { DocumentsSection } from './DocumentsSection';
 import { ConsultationPreview } from './ConsultationPreview';
+import { PendingDocumentsProvider, usePendingDocuments } from '../context/PendingDocumentsContext';
+import { uploadToS3 } from '@/utils/s3Client';
+import Axios from '@/setup/axios';
 
 interface ConsultationFormProps {
   initialPatientId?: string;
   initialAppointmentId?: string;
+  consultationId?: string; // For editing existing consultations
   readOnlyFields?: {
     patientId?: boolean;
     appointmentId?: boolean;
@@ -35,15 +40,22 @@ interface ConsultationFormProps {
   onCancel?: () => void;
 }
 
-export const ConsultationForm: React.FC<ConsultationFormProps> = ({
+// Inner component that has access to PendingDocumentsContext
+const ConsultationFormInner: React.FC<ConsultationFormProps> = ({
   initialPatientId,
   initialAppointmentId,
+  consultationId: initialConsultationId,
   // readOnlyFields = {},
   onSubmitSuccess,
   onCancel,
 }) => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  // const [previousValues, setPreviousValues] = useState<ConsultationFormValues | null>(null);
+  const [consultationId, setConsultationId] = useState<string | undefined>(initialConsultationId);
+  const [isUploadingDocuments, setIsUploadingDocuments] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+
+  // Get pending files from context
+  const { pendingFiles, clearFiles, hasFiles } = usePendingDocuments();
 
   // API hooks
   const createConsultation = useCreateConsultation();
@@ -110,10 +122,103 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
     };
   }, []);
 
+  // Upload pending files after consultation is created (concurrent uploads)
+  const uploadPendingFiles = useCallback(
+    async (newConsultationId: string) => {
+      if (!hasFiles || pendingFiles.length === 0 || !newConsultationId) {
+        console.log('Upload skipped:', { hasFiles, filesCount: pendingFiles.length, newConsultationId });
+        return;
+      }
+
+      try {
+        setIsUploadingDocuments(true);
+        setUploadProgress({ current: 0, total: pendingFiles.length });
+
+        let completedCount = 0;
+
+        // Upload all files concurrently using Promise.allSettled
+        const uploadPromises = pendingFiles.map(async (pendingFile, index) => {
+          try {
+            // Upload to S3
+            const s3Result = await uploadToS3(
+              pendingFile.file,
+              'consultations',
+              newConsultationId,
+              pendingFile.documentCategory
+            );
+
+            // Save metadata to backend
+            await Axios.post(`/consultations/${newConsultationId}/documents`, {
+              consultationId: newConsultationId,
+              fileName: s3Result.fileName,
+              originalFileName: pendingFile.file.name,
+              fileType: pendingFile.file.type,
+              fileSize: pendingFile.file.size,
+              s3Key: s3Result.s3Key,
+              s3Url: s3Result.s3Url,
+              documentCategory: pendingFile.documentCategory,
+              documentType: pendingFile.documentType,
+              description: pendingFile.description,
+              isSensitive: pendingFile.isSensitive,
+            });
+
+            // Update progress
+            completedCount++;
+            setUploadProgress({ current: completedCount, total: pendingFiles.length });
+
+            return { success: true, fileName: pendingFile.file.name };
+          } catch (uploadError) {
+            console.error('Failed to upload file:', pendingFile.file.name, uploadError);
+
+            // Update progress even for failed uploads
+            completedCount++;
+            setUploadProgress({ current: completedCount, total: pendingFiles.length });
+
+            return { success: false, fileName: pendingFile.file.name, error: uploadError };
+          }
+        });
+
+        // Wait for all uploads to complete
+        const results = await Promise.allSettled(uploadPromises);
+
+        // Count successes and failures
+        const uploadedCount = {
+          success: results.filter(
+            (r) => r.status === 'fulfilled' && r.value.success
+          ).length,
+          failed: results.filter(
+            (r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)
+          ).length,
+        };
+
+        if (uploadedCount.success > 0) {
+          message.success(`${uploadedCount.success} document(s) uploaded successfully!`);
+        }
+        if (uploadedCount.failed > 0) {
+          message.warning(`${uploadedCount.failed} document(s) failed to upload`);
+        }
+
+        // Clear pending files after upload
+        clearFiles();
+      } catch (error) {
+        message.error('Failed to upload documents');
+        console.error('Document upload error:', error);
+      } finally {
+        setIsUploadingDocuments(false);
+        setUploadProgress({ current: 0, total: 0 });
+      }
+    },
+    [hasFiles, pendingFiles, clearFiles]
+  );
+
   // Handle form submission
   const handleSubmit = useCallback(
     async (values: ConsultationFormValues) => {
       try {
+        console.log('=== FORM SUBMIT START ===');
+        console.log('Pending files count:', pendingFiles.length);
+        console.log('Has files:', hasFiles);
+
         // Transform form values to CreateConsultation DTO
         const consultationData: CreateConsultation = {
           patientId: values.patientId,
@@ -132,16 +237,29 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
         };
 
         // Call create mutation
-        await createConsultation.mutateAsync(consultationData);
+        console.log('Creating consultation...');
+        const result = await createConsultation.mutateAsync(consultationData);
+        console.log('Consultation created with ID:', result.id);
 
-        // Call success callback
+        // Upload pending files if any (pass the consultationId directly)
+        if (pendingFiles.length > 0) {
+          console.log('Starting document upload for', pendingFiles.length, 'files');
+          await uploadPendingFiles(result.id);
+          console.log('Document upload completed');
+        } else {
+          console.log('No pending files to upload');
+        }
+
+        console.log('=== FORM SUBMIT SUCCESS ===');
+
+        // Call success callback - This triggers the redirect
         onSubmitSuccess?.();
       } catch (error) {
         // Error handling is done by the mutation hook
         console.error('Failed to create consultation:', error);
       }
     },
-    [createConsultation, onSubmitSuccess]
+    [createConsultation, pendingFiles, uploadPendingFiles, onSubmitSuccess]
   );
 
   // Tab items for Ant Design Tabs (will receive formik from within Formik context)
@@ -179,6 +297,15 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
       children: (
         <div className="py-4">
           <PrescriptionsSection formik={formik} />
+        </div>
+      ),
+    },
+    {
+      key: 'documents',
+      label: 'Documents',
+      children: (
+        <div className="py-4">
+          <DocumentsSection formik={formik} consultationId={consultationId} />
         </div>
       ),
     },
@@ -234,23 +361,58 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
                 <Button
                   variant="secondary"
                   onClick={onCancel}
-                  disabled={createConsultation.isPending}
+                  disabled={createConsultation.isPending || isUploadingDocuments}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  loading={createConsultation.isPending}
-                  disabled={createConsultation.isPending || !formik.isValid}
+                  loading={createConsultation.isPending || isUploadingDocuments}
+                  disabled={createConsultation.isPending || isUploadingDocuments || !formik.isValid}
                 >
-                  Save Consultation
+                  {isUploadingDocuments ? 'Uploading Documents...' : 'Save Consultation'}
                 </Button>
               </div>
             </Form>
           );
         }}
       </Formik>
+
+      {/* Upload Progress Modal */}
+      <Modal
+        open={isUploadingDocuments}
+        closable={false}
+        footer={null}
+        centered
+        maskClosable={false}
+      >
+        <div className="py-4">
+          <h3 className="text-lg font-semibold mb-4">Uploading Documents</h3>
+          <Progress
+            percent={uploadProgress.total > 0 ? Math.round((uploadProgress.current / uploadProgress.total) * 100) : 0}
+            status="active"
+            strokeColor={{
+              '0%': '#108ee9',
+              '100%': '#87d068',
+            }}
+          />
+          <p className="text-sm text-gray-600 mt-3 text-center">
+            {uploadProgress.current} of {uploadProgress.total} documents uploaded
+          </p>
+        </div>
+      </Modal>
     </div>
+  );
+};
+
+ConsultationFormInner.displayName = 'ConsultationFormInner';
+
+// Wrapper component that provides PendingDocumentsContext
+export const ConsultationForm: React.FC<ConsultationFormProps> = (props) => {
+  return (
+    <PendingDocumentsProvider>
+      <ConsultationFormInner {...props} />
+    </PendingDocumentsProvider>
   );
 };
 
